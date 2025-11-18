@@ -29,23 +29,56 @@
         }
         
         @keyframes slotMachineSpin {
-            0% { transform: translateY(0); opacity: 1; }
-            25% { transform: translateY(-100%); opacity: 0; }
-            26% { transform: translateY(100%); opacity: 0; }
-            50% { transform: translateY(0); opacity: 1; }
-            75% { transform: translateY(-100%); opacity: 0; }
-            76% { transform: translateY(100%); opacity: 0; }
-            100% { transform: translateY(0); opacity: 1; }
+            0% { 
+                transform: translateY(0); 
+                opacity: 1; 
+            }
+            15% { 
+                transform: translateY(-300%); 
+                opacity: 0.3; 
+            }
+            16% { 
+                transform: translateY(300%); 
+                opacity: 0.3; 
+            }
+            30% { 
+                transform: translateY(0); 
+                opacity: 1; 
+            }
+            45% { 
+                transform: translateY(-300%); 
+                opacity: 0.3; 
+            }
+            46% { 
+                transform: translateY(300%); 
+                opacity: 0.3; 
+            }
+            60% { 
+                transform: translateY(0); 
+                opacity: 1; 
+            }
+            75% { 
+                transform: translateY(-300%); 
+                opacity: 0.3; 
+            }
+            76% { 
+                transform: translateY(300%); 
+                opacity: 0.3; 
+            }
+            100% { 
+                transform: translateY(0); 
+                opacity: 1; 
+            }
         }
         
         .slot-spin-1 {
-            animation: slotMachineSpin 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            animation: slotMachineSpin 2.2s cubic-bezier(0.33, 1, 0.68, 1);
         }
         .slot-spin-2 {
-            animation: slotMachineSpin 1.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            animation: slotMachineSpin 2.6s cubic-bezier(0.33, 1, 0.68, 1);
         }
         .slot-spin-3 {
-            animation: slotMachineSpin 1.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            animation: slotMachineSpin 3.0s cubic-bezier(0.33, 1, 0.68, 1);
         }
     </style>
 </head>
@@ -230,7 +263,7 @@
                     
                     setTimeout(() => {
                         setIsSpinning(false);
-                    }, 100);
+                    }, 3100);
                 }, 100);
             };
 
@@ -284,56 +317,58 @@
 
                 if (compact) {
                     return (
-                        <div className="bg-gray-800 rounded-lg overflow-hidden shadow-xl hover:shadow-2xl transition hover:scale-105 h-full flex flex-col">
+                        <div className="bg-gray-800 rounded-lg overflow-hidden shadow-xl hover:shadow-2xl transition hover:scale-105 h-full flex flex-col text-xs">
                             <div className="relative flex-shrink-0">
                                 {details.poster_path ? (
                                     <img
-                                        src={`https://image.tmdb.org/t/p/w300${details.poster_path}`}
+                                        src={`https://image.tmdb.org/t/p/w200${details.poster_path}`}
                                         alt={movieTitle}
                                         className="w-full aspect-[2/3] object-cover"
                                     />
                                 ) : (
                                     <div className="w-full aspect-[2/3] bg-gray-700 flex items-center justify-center">
-                                        <Film className="w-12 h-12 text-gray-500" />
+                                        <Film className="w-8 h-8 text-gray-500" />
                                     </div>
                                 )}
                                 {isWatched && (
-                                    <div className="absolute top-2 right-2 bg-green-600 text-white px-2 py-1 rounded-full text-xs font-semibold">
+                                    <div className="absolute top-1 right-1 bg-green-600 text-white px-2 py-0.5 rounded-full text-xs font-semibold">
                                         ✓
                                     </div>
                                 )}
                             </div>
-                            <div className="p-2 flex-1 flex flex-col">
+                            <div className="p-2 flex-1 flex flex-col justify-between">
                                 {/* Title and Runtime */}
-                                <div className="mb-1 min-h-[2.5rem]">
-                                    <h3 className="font-bold text-sm line-clamp-2">{details.title}</h3>
+                                <div>
+                                    <h3 className="font-bold text-xs leading-tight line-clamp-2 mb-1">{details.title}</h3>
                                     {details.runtime && (
-                                        <p className="text-xs text-gray-400 mt-0.5">{details.runtime} min</p>
+                                        <p className="text-xs text-gray-400">{details.runtime} min</p>
                                     )}
                                 </div>
 
-                                {/* MPAA Rating */}
-                                <div className="mb-1">
-                                    {details.release_dates?.results && (() => {
-                                        const usRelease = details.release_dates.results.find(r => r.iso_3166_1 === 'US');
-                                        const certification = usRelease?.release_dates?.[0]?.certification;
-                                        if (certification) {
-                                            return (
-                                                <span className="inline-block px-2 py-0.5 bg-gray-700 text-xs font-semibold rounded">
-                                                    {certification}
-                                                </span>
-                                            );
-                                        }
-                                        return <span className="text-xs text-transparent">-</span>;
-                                    })()}
-                                </div>
+                                <div className="space-y-1">
+                                    {/* MPAA Rating */}
+                                    <div>
+                                        {details.release_dates?.results && (() => {
+                                            const usRelease = details.release_dates.results.find(r => r.iso_3166_1 === 'US');
+                                            const certification = usRelease?.release_dates?.[0]?.certification;
+                                            if (certification) {
+                                                return (
+                                                    <span className="inline-block px-1.5 py-0.5 bg-gray-700 text-xs font-semibold rounded">
+                                                        {certification}
+                                                    </span>
+                                                );
+                                            }
+                                            return <span className="text-xs text-transparent">-</span>;
+                                        })()}
+                                    </div>
 
-                                {/* Genres */}
-                                <div className="text-xs text-gray-400">
-                                    {details.genres && details.genres.length > 0 
-                                        ? details.genres.slice(0, 2).map(g => g.name).join(', ')
-                                        : '-'
-                                    }
+                                    {/* Genres */}
+                                    <div className="text-xs text-gray-400 line-clamp-1">
+                                        {details.genres && details.genres.length > 0 
+                                            ? details.genres.slice(0, 2).map(g => g.name).join(', ')
+                                            : '-'
+                                        }
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -514,7 +549,7 @@
                         </div>
                     </div>
 
-                    <div className="max-w-6xl mx-auto px-4 py-12">
+                    <div className="max-w-6xl mx-auto px-4 py-8">
                         {!showFullList && !showWatchedList && (
                             <div className="mb-12">
                                 {watchlist.filter(m => !watchedMovies.includes(m)).length === 0 ? (
@@ -530,10 +565,7 @@
                                     </div>
                                 ) : (
                                     <>
-                                        <div className="flex justify-between items-center mb-6">
-                                            <h2 className="text-2xl font-semibold">
-                                                Here are {suggestions.length} suggestion{suggestions.length !== 1 ? 's' : ''}:
-                                            </h2>
+                                        <div className="flex justify-end items-center mb-4">
                                             <button
                                                 onClick={getNewSuggestions}
                                                 className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-lg transition font-semibold shadow-lg flex-shrink-0"
@@ -543,7 +575,7 @@
                                             </button>
                                         </div>
 
-                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                             {suggestions.map((movie, index) => (
                                                 <div 
                                                     key={index} 
