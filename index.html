@@ -135,15 +135,17 @@
                         if (searchData.results && searchData.results.length > 0) {
                             const movieId = searchData.results[0].id;
 
-                            const [detailsResponse, creditsResponse, videosResponse] = await Promise.all([
+                            const [detailsResponse, creditsResponse, videosResponse, releaseDatesResponse] = await Promise.all([
                                 fetch(`https://api.themoviedb.org/3/movie/${movieId}?language=en-US`, options),
                                 fetch(`https://api.themoviedb.org/3/movie/${movieId}/credits?language=en-US`, options),
-                                fetch(`https://api.themoviedb.org/3/movie/${movieId}/videos?language=en-US`, options)
+                                fetch(`https://api.themoviedb.org/3/movie/${movieId}/videos?language=en-US`, options),
+                                fetch(`https://api.themoviedb.org/3/movie/${movieId}/release_dates`, options)
                             ]);
 
                             const movieDetails = await detailsResponse.json();
                             const creditsData = await creditsResponse.json();
                             const videosData = await videosResponse.json();
+                            const releaseDatesData = await releaseDatesResponse.json();
 
                             const trailer = videosData.results?.find(v => v.type === 'Trailer' && v.site === 'YouTube');
                             const topActors = creditsData.cast?.slice(0, 5).map(actor => actor.name) || [];
@@ -151,7 +153,8 @@
                             details[movie] = {
                                 ...movieDetails,
                                 actors: topActors,
-                                trailer: trailer?.key
+                                trailer: trailer?.key,
+                                release_dates: releaseDatesData
                             };
                         }
                     } catch (error) {
@@ -248,7 +251,9 @@
                             </div>
                             <div className="p-4">
                                 <h3 className="font-bold text-lg mb-2 line-clamp-2">{details.title}</h3>
-                                <div className="flex items-center justify-between text-sm">
+                                
+                                {/* Rating and Runtime */}
+                                <div className="flex items-center justify-between text-sm mb-2">
                                     <div className="flex items-center gap-1">
                                         <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
                                         <span>{details.vote_average.toFixed(1)}</span>
@@ -260,6 +265,38 @@
                                         </div>
                                     )}
                                 </div>
+
+                                {/* MPAA Rating */}
+                                {details.release_dates?.results && (
+                                    <div className="mb-2">
+                                        {(() => {
+                                            const usRelease = details.release_dates.results.find(r => r.iso_3166_1 === 'US');
+                                            const certification = usRelease?.release_dates?.[0]?.certification;
+                                            if (certification) {
+                                                return (
+                                                    <span className="inline-block px-2 py-1 bg-gray-700 text-xs font-semibold rounded">
+                                                        {certification}
+                                                    </span>
+                                                );
+                                            }
+                                            return null;
+                                        })()}
+                                    </div>
+                                )}
+
+                                {/* Genres */}
+                                {details.genres && details.genres.length > 0 && (
+                                    <div className="flex flex-wrap gap-1">
+                                        {details.genres.slice(0, 2).map(genre => (
+                                            <span
+                                                key={genre.id}
+                                                className="text-xs text-gray-400"
+                                            >
+                                                {genre.name}
+                                            </span>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
                         </div>
                     );
@@ -387,6 +424,11 @@
                 return (
                     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900 text-white flex items-center justify-center">
                         <div className="text-center">
+                            <div className="flex gap-4 mb-8 justify-center">
+                                <div className="w-32 h-48 bg-gray-800 rounded-lg animate-pulse" style={{animationDelay: '0s'}}></div>
+                                <div className="w-32 h-48 bg-gray-800 rounded-lg animate-pulse" style={{animationDelay: '0.2s'}}></div>
+                                <div className="w-32 h-48 bg-gray-800 rounded-lg animate-pulse" style={{animationDelay: '0.4s'}}></div>
+                            </div>
                             <Film className="w-16 h-16 text-blue-400 animate-pulse mx-auto mb-4" />
                             <p className="text-xl">Loading your movies...</p>
                         </div>
@@ -476,6 +518,18 @@
 
                         {showFullList && (
                             <div>
+                                <div className="flex items-center gap-3 mb-6">
+                                    <button
+                                        onClick={() => {
+                                            setShowFullList(false);
+                                            setShowWatchedList(false);
+                                        }}
+                                        className="text-blue-400 hover:text-blue-300 transition flex items-center gap-2"
+                                    >
+                                        <span className="text-2xl">←</span>
+                                        <span className="text-sm">Back to Recommendations</span>
+                                    </button>
+                                </div>
                                 <h3 className="text-2xl font-semibold mb-6">
                                     Movies To Watch ({watchlist.filter(m => !watchedMovies.includes(m)).length})
                                 </h3>
@@ -494,6 +548,18 @@
 
                         {showWatchedList && (
                             <div>
+                                <div className="flex items-center gap-3 mb-6">
+                                    <button
+                                        onClick={() => {
+                                            setShowFullList(false);
+                                            setShowWatchedList(false);
+                                        }}
+                                        className="text-blue-400 hover:text-blue-300 transition flex items-center gap-2"
+                                    >
+                                        <span className="text-2xl">←</span>
+                                        <span className="text-sm">Back to Recommendations</span>
+                                    </button>
+                                </div>
                                 <h3 className="text-2xl font-semibold mb-6">
                                     Watched Movies ({watchedMovies.length})
                                 </h3>
