@@ -28,57 +28,17 @@
             animation-delay: 0.4s;
         }
         
-        @keyframes slotMachineSpin {
-            0% { 
-                transform: translateY(0); 
-                opacity: 1; 
-            }
-            15% { 
-                transform: translateY(-300%); 
-                opacity: 0.3; 
-            }
-            16% { 
-                transform: translateY(300%); 
-                opacity: 0.3; 
-            }
-            30% { 
-                transform: translateY(0); 
-                opacity: 1; 
-            }
-            45% { 
-                transform: translateY(-300%); 
-                opacity: 0.3; 
-            }
-            46% { 
-                transform: translateY(300%); 
-                opacity: 0.3; 
-            }
-            60% { 
-                transform: translateY(0); 
-                opacity: 1; 
-            }
-            75% { 
-                transform: translateY(-300%); 
-                opacity: 0.3; 
-            }
-            76% { 
-                transform: translateY(300%); 
-                opacity: 0.3; 
-            }
-            100% { 
-                transform: translateY(0); 
-                opacity: 1; 
-            }
+        .carousel-container {
+            scroll-snap-type: x mandatory;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
         }
-        
-        .slot-spin-1 {
-            animation: slotMachineSpin 2.2s cubic-bezier(0.33, 1, 0.68, 1);
+        .carousel-container::-webkit-scrollbar {
+            display: none;
         }
-        .slot-spin-2 {
-            animation: slotMachineSpin 2.6s cubic-bezier(0.33, 1, 0.68, 1);
-        }
-        .slot-spin-3 {
-            animation: slotMachineSpin 3.0s cubic-bezier(0.33, 1, 0.68, 1);
+        .carousel-item {
+            scroll-snap-align: center;
+            scroll-snap-stop: always;
         }
     </style>
 </head>
@@ -116,6 +76,18 @@
                 <polyline points="21 16 21 21 16 21"/>
                 <line x1="15" y1="15" x2="21" y2="21"/>
                 <line x1="4" y1="4" x2="9" y2="9"/>
+            </svg>
+        );
+
+        const ChevronLeft = ({ className }) => (
+            <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="15 18 9 12 15 6"/>
+            </svg>
+        );
+
+        const ChevronRight = ({ className }) => (
+            <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="9 18 15 12 9 6"/>
             </svg>
         );
 
@@ -165,7 +137,7 @@
             const [selectedTrailer, setSelectedTrailer] = useState(null);
             const [watchedMovies, setWatchedMovies] = useState([]);
             const [selectedMovie, setSelectedMovie] = useState(null);
-            const [isSpinning, setIsSpinning] = useState(false);
+            const [currentSlide, setCurrentSlide] = useState(0);
 
             const watchlist = [
                 "Scarface", "Boogie Nights", "Fargo", "Raising Arizona", "Norma Rae",
@@ -254,17 +226,10 @@
                     return;
                 }
 
-                setIsSpinning(true);
-                
-                setTimeout(() => {
-                    const shuffled = [...unwatchedMovies].sort(() => Math.random() - 0.5);
-                    const count = Math.min(3, unwatchedMovies.length);
-                    setSuggestions(shuffled.slice(0, count));
-                    
-                    setTimeout(() => {
-                        setIsSpinning(false);
-                    }, 3100);
-                }, 100);
+                const shuffled = [...unwatchedMovies].sort(() => Math.random() - 0.5);
+                const count = Math.min(3, unwatchedMovies.length);
+                setSuggestions(shuffled.slice(0, count));
+                setCurrentSlide(0);
             };
 
             const markAsWatched = (movieTitle) => {
@@ -565,26 +530,78 @@
                                     </div>
                                 ) : (
                                     <>
-                                        <div className="flex justify-end items-center mb-4">
-                                            <button
-                                                onClick={getNewSuggestions}
-                                                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-lg transition font-semibold shadow-lg flex-shrink-0"
-                                            >
-                                                <Shuffle className="w-5 h-5" />
-                                                Spin Again
-                                            </button>
-                                        </div>
-
-                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                            {suggestions.map((movie, index) => (
-                                                <div 
-                                                    key={index} 
-                                                    onClick={() => openMovieDetails(movie)} 
-                                                    className={`cursor-pointer overflow-hidden ${isSpinning ? `slot-spin-${index + 1}` : ''}`}
+                                        {/* Carousel Container */}
+                                        <div className="relative max-w-md mx-auto">
+                                            {/* Navigation Arrows */}
+                                            {currentSlide > 0 && (
+                                                <button
+                                                    onClick={() => setCurrentSlide(currentSlide - 1)}
+                                                    className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-12 z-10 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg transition"
                                                 >
-                                                    <MovieCard movieTitle={movie} compact={true} />
+                                                    <ChevronLeft className="w-6 h-6" />
+                                                </button>
+                                            )}
+                                            
+                                            {currentSlide < suggestions.length && (
+                                                <button
+                                                    onClick={() => setCurrentSlide(currentSlide + 1)}
+                                                    className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-12 z-10 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg transition"
+                                                >
+                                                    <ChevronRight className="w-6 h-6" />
+                                                </button>
+                                            )}
+
+                                            {/* Carousel */}
+                                            <div className="overflow-hidden">
+                                                <div 
+                                                    className="flex transition-transform duration-500 ease-out"
+                                                    style={{ transform: `translateX(-${currentSlide * 100}%)` }}
+                                                >
+                                                    {/* Movie Cards */}
+                                                    {suggestions.map((movie, index) => (
+                                                        <div 
+                                                            key={index} 
+                                                            className="carousel-item w-full flex-shrink-0 px-2"
+                                                        >
+                                                            <div onClick={() => openMovieDetails(movie)} className="cursor-pointer">
+                                                                <MovieCard movieTitle={movie} compact={true} />
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                    
+                                                    {/* Shuffle Card */}
+                                                    <div className="carousel-item w-full flex-shrink-0 px-2">
+                                                        <div 
+                                                            onClick={getNewSuggestions}
+                                                            className="bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg shadow-xl hover:shadow-2xl transition cursor-pointer h-full flex flex-col items-center justify-center p-8 min-h-[400px]"
+                                                        >
+                                                            <Shuffle className="w-20 h-20 text-white mb-6" />
+                                                            <h3 className="text-2xl font-bold text-white text-center mb-2">Get New Recommendations</h3>
+                                                            <p className="text-blue-100 text-center">Tap to shuffle and see 3 new movies</p>
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                            ))}
+                                            </div>
+
+                                            {/* Dots Indicator */}
+                                            <div className="flex justify-center gap-2 mt-6">
+                                                {[...suggestions, 'shuffle'].map((_, index) => (
+                                                    <button
+                                                        key={index}
+                                                        onClick={() => setCurrentSlide(index)}
+                                                        className={`w-2 h-2 rounded-full transition ${
+                                                            currentSlide === index ? 'bg-blue-500 w-8' : 'bg-gray-600'
+                                                        }`}
+                                                    />
+                                                ))}
+                                            </div>
+
+                                            {/* Swipe Hint */}
+                                            {currentSlide === 0 && (
+                                                <p className="text-center text-gray-400 text-sm mt-4">
+                                                    ← Swipe or use arrows to see more →
+                                                </p>
+                                            )}
                                         </div>
                                     </>
                                 )}
