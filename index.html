@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movie Picker</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // ============================================
+        // CONFIGURATION - ADD YOUR TMDB API KEY HERE
+        // ============================================
+        const TMDB_CONFIG = {
+            bearerToken: 'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI4NDZkYmQ3NzY5MmE3MDY3NGNlMTBhMWM2YjRkNjY2YyIsIm5iZiI6MTc2MzQyMzc5MS4wMDg5OTk4LCJzdWIiOiI2OTFiYjYyZmMzMjkxYzk2ODdjN2QyYTQiLCJzY29wZXMiOlsiYXBpX3JlYWQiXSwidmVyc2lvbiI6MX0.yceVQdz0-IeMdfCDLlmerZZZ9X95mX_5MUEuTHEKnXM'
+        };
+
+        // Lucide Icons (inline SVG components)
+        const Film = ({ className }) => (
+            <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/>
+                <line x1="7" y1="2" x2="7" y2="22"/>
+                <line x1="17" y1="2" x2="17" y2="22"/>
+                <line x1="2" y1="12" x2="22" y2="12"/>
+                <line x1="2" y1="7" x2="7" y2="7"/>
+                <line x1="2" y1="17" x2="7" y2="17"/>
+                <line x1="17" y1="17" x2="22" y2="17"/>
+                <line x1="17" y1="7" x2="22" y2="7"/>
+            </svg>
+        );
+
+        const Shuffle = ({ className }) => (
+            <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="16 3 21 3 21 8"/>
+                <line x1="4" y1="20" x2="21" y2="3"/>
+                <polyline points="21 16 21 21 16 21"/>
+                <line x1="15" y1="15" x2="21" y2="21"/>
+                <line x1="4" y1="4" x2="9" y2="9"/>
+            </svg>
+        );
+
+        const List = ({ className }) => (
+            <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="8" y1="6" x2="21" y2="6"/>
+                <line x1="8" y1="12" x2="21" y2="12"/>
+                <line x1="8" y1="18" x2="21" y2="18"/>
+                <line x1="3" y1="6" x2="3.01" y2="6"/>
+                <line x1="3" y1="12" x2="3.01" y2="12"/>
+                <line x1="3" y1="18" x2="3.01" y2="18"/>
+            </svg>
+        );
+
+        const Clock = ({ className }) => (
+            <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <polyline points="12 6 12 12 16 14"/>
+            </svg>
+        );
+
+        const Star = ({ className }) => (
+            <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+            </svg>
+        );
+
+        const Play = ({ className }) => (
+            <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polygon points="5 3 19 12 5 21 5 3"/>
+            </svg>
+        );
+
+        const X = ({ className }) => (
+            <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"/>
+                <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+        );
+
+        function MoviePicker() {
+            const [suggestions, setSuggestions] = useState([]);
+            const [movieDetails, setMovieDetails] = useState({});
+            const [showFullList, setShowFullList] = useState(false);
+            const [showWatchedList, setShowWatchedList] = useState(false);
+            const [loading, setLoading] = useState(true);
+            const [selectedTrailer, setSelectedTrailer] = useState(null);
+            const [watchedMovies, setWatchedMovies] = useState([]);
+            const [selectedMovie, setSelectedMovie] = useState(null);
+
+            const watchlist = [
+                "Scarface", "Boogie Nights", "Fargo", "Raising Arizona", "Norma Rae",
+                "Farmer's Daughter", "My Life as a Dog", "A River Runs Through It",
+                "Erin Brockovich", "What's Eating Gilbert Grape", "American Graffiti",
+                "Chinatown", "Inside Moves", "Scarecrow", "Bye Bye Birdie",
+                "A Beautiful Mind", "Wedding Crashers", "Silence", "Box of Moonlight",
+                "Desperately Seeking Susan", "Easy Rider", "Sully", "Cool Hand Luke",
+                "Wild at Heart", "Ne Zha", "One Flew Over the Cuckoo's Nest",
+                "Taxi Driver", "Father of the Bride", "Passion Fish", "Juno",
+                "Seabiscuit", "Chariots of Fire", "Psycho", "Fried Green Tomatoes",
+                "Sweet Sixteen", "Drop Dead Gorgeous", "Zone of Interest", "Sexy Beast",
+                "The Hateful Eight", "Brokeback Mountain", "Walk the Line"
+            ];
+
+            useEffect(() => {
+                fetchAllMovieDetails();
+            }, []);
+
+            const fetchAllMovieDetails = async () => {
+                setLoading(true);
+                const details = {};
+
+                const options = {
+                    method: 'GET',
+                    headers: {
+                        accept: 'application/json',
+                        Authorization: `Bearer ${TMDB_CONFIG.bearerToken}`
+                    }
+                };
+
+                for (const movie of watchlist) {
+                    try {
+                        const searchUrl = `https://api.themoviedb.org/3/search/movie?query=${encodeURIComponent(movie)}&include_adult=false&language=en-US&page=1`;
+                        const searchResponse = await fetch(searchUrl, options);
+
+                        if (!searchResponse.ok) continue;
+
+                        const searchData = await searchResponse.json();
+
+                        if (searchData.results && searchData.results.length > 0) {
+                            const movieId = searchData.results[0].id;
+
+                            const [detailsResponse, creditsResponse, videosResponse] = await Promise.all([
+                                fetch(`https://api.themoviedb.org/3/movie/${movieId}?language=en-US`, options),
+                                fetch(`https://api.themoviedb.org/3/movie/${movieId}/credits?language=en-US`, options),
+                                fetch(`https://api.themoviedb.org/3/movie/${movieId}/videos?language=en-US`, options)
+                            ]);
+
+                            const movieDetails = await detailsResponse.json();
+                            const creditsData = await creditsResponse.json();
+                            const videosData = await videosResponse.json();
+
+                            const trailer = videosData.results?.find(v => v.type === 'Trailer' && v.site === 'YouTube');
+                            const topActors = creditsData.cast?.slice(0, 5).map(actor => actor.name) || [];
+
+                            details[movie] = {
+                                ...movieDetails,
+                                actors: topActors,
+                                trailer: trailer?.key
+                            };
+                        }
+                    } catch (error) {
+                        console.error(`Error fetching details for ${movie}:`, error);
+                    }
+                }
+
+                setMovieDetails(details);
+                setLoading(false);
+                getNewSuggestions();
+            };
+
+            const getNewSuggestions = () => {
+                const unwatchedMovies = watchlist.filter(movie => !watchedMovies.includes(movie));
+
+                if (unwatchedMovies.length === 0) {
+                    setSuggestions([]);
+                    return;
+                }
+
+                const shuffled = [...unwatchedMovies].sort(() => Math.random() - 0.5);
+                const count = Math.min(3, unwatchedMovies.length);
+                setSuggestions(shuffled.slice(0, count));
+            };
+
+            const markAsWatched = (movieTitle) => {
+                if (!watchedMovies.includes(movieTitle)) {
+                    const newWatched = [...watchedMovies, movieTitle];
+                    setWatchedMovies(newWatched);
+                    setSuggestions(prev => prev.filter(m => m !== movieTitle));
+
+                    setTimeout(() => {
+                        const unwatchedMovies = watchlist.filter(movie => !newWatched.includes(movie));
+                        if (suggestions.filter(m => !newWatched.includes(m)).length < 3 && unwatchedMovies.length > 0) {
+                            getNewSuggestions();
+                        }
+                    }, 100);
+                }
+            };
+
+            const markAsUnwatched = (movieTitle) => {
+                setWatchedMovies(prev => prev.filter(m => m !== movieTitle));
+            };
+
+            const openTrailer = (trailerKey) => {
+                setSelectedTrailer(trailerKey);
+            };
+
+            const closeTrailer = () => {
+                setSelectedTrailer(null);
+            };
+
+            const openMovieDetails = (movieTitle) => {
+                setSelectedMovie(movieTitle);
+            };
+
+            const closeMovieDetails = () => {
+                setSelectedMovie(null);
+            };
+
+            const MovieCard = ({ movieTitle, compact = false }) => {
+                const details = movieDetails[movieTitle];
+                const isWatched = watchedMovies.includes(movieTitle);
+
+                if (!details) {
+                    return (
+                        <div className="bg-white bg-opacity-10 backdrop-blur rounded-lg p-6">
+                            <h3 className="text-2xl font-semibold mb-2">{movieTitle}</h3>
+                            <p className="text-gray-300">Loading details...</p>
+                        </div>
+                    );
+                }
+
+                if (compact) {
+                    return (
+                        <div className="bg-gray-800 rounded-lg overflow-hidden shadow-xl hover:shadow-2xl transition hover:scale-105">
+                            <div className="relative">
+                                {details.poster_path ? (
+                                    <img
+                                        src={`https://image.tmdb.org/t/p/w500${details.poster_path}`}
+                                        alt={movieTitle}
+                                        className="w-full aspect-[2/3] object-cover"
+                                    />
+                                ) : (
+                                    <div className="w-full aspect-[2/3] bg-gray-700 flex items-center justify-center">
+                                        <Film className="w-16 h-16 text-gray-500" />
+                                    </div>
+                                )}
+                                {isWatched && (
+                                    <div className="absolute top-2 right-2 bg-green-600 text-white px-3 py-1 rounded-full text-xs font-semibold">
+                                        ✓ Watched
+                                    </div>
+                                )}
+                            </div>
+                            <div className="p-4">
+                                <h3 className="font-bold text-lg mb-2 line-clamp-2">{details.title}</h3>
+                                <div className="flex items-center justify-between text-sm">
+                                    <div className="flex items-center gap-1">
+                                        <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+                                        <span>{details.vote_average.toFixed(1)}</span>
+                                    </div>
+                                    {details.runtime && (
+                                        <div className="flex items-center gap-1 text-gray-400">
+                                            <Clock className="w-4 h-4" />
+                                            <span>{details.runtime}m</span>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    );
+                }
+
+                return (
+                    <div className={`bg-gray-800 rounded-lg overflow-hidden shadow-xl ${isWatched ? 'opacity-75' : ''}`}>
+                        <div className="flex flex-col md:flex-row">
+                            <div className="md:w-1/3 flex-shrink-0 relative">
+                                {details.poster_path ? (
+                                    <img
+                                        src={`https://image.tmdb.org/t/p/w500${details.poster_path}`}
+                                        alt={movieTitle}
+                                        className="w-full h-full object-cover"
+                                    />
+                                ) : (
+                                    <div className="w-full h-64 md:h-full bg-gray-700 flex items-center justify-center">
+                                        <Film className="w-16 h-16 text-gray-500" />
+                                    </div>
+                                )}
+                                {isWatched && (
+                                    <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+                                        <div className="bg-green-600 text-white px-4 py-2 rounded-lg font-semibold">
+                                            ✓ Watched
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="p-6 flex-1">
+                                <h3 className="text-2xl font-bold mb-3">{details.title}</h3>
+
+                                <div className="flex flex-wrap gap-4 mb-4 text-sm">
+                                    {details.vote_average > 0 && (
+                                        <div className="flex items-center gap-1">
+                                            <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+                                            <span className="font-semibold">{details.vote_average.toFixed(1)}</span>
+                                            <span className="text-gray-400">/10</span>
+                                        </div>
+                                    )}
+
+                                    {details.runtime && (
+                                        <div className="flex items-center gap-1">
+                                            <Clock className="w-4 h-4 text-blue-400" />
+                                            <span>{details.runtime} min</span>
+                                        </div>
+                                    )}
+
+                                    {details.release_date && (
+                                        <div className="text-gray-300">
+                                            {new Date(details.release_date).getFullYear()}
+                                        </div>
+                                    )}
+                                </div>
+
+                                {details.genres && details.genres.length > 0 && (
+                                    <div className="flex flex-wrap gap-2 mb-4">
+                                        {details.genres.map(genre => (
+                                            <span
+                                                key={genre.id}
+                                                className="px-3 py-1 bg-blue-600 bg-opacity-50 rounded-full text-xs"
+                                            >
+                                                {genre.name}
+                                            </span>
+                                        ))}
+                                    </div>
+                                )}
+
+                                {details.overview && (
+                                    <p className="text-gray-300 mb-4 leading-relaxed">
+                                        {details.overview}
+                                    </p>
+                                )}
+
+                                {details.actors && details.actors.length > 0 && (
+                                    <div className="mb-4">
+                                        <p className="text-sm text-gray-400 mb-1">Starring:</p>
+                                        <p className="text-sm">{details.actors.join(', ')}</p>
+                                    </div>
+                                )}
+
+                                <div className="flex flex-wrap gap-3 mt-4">
+                                    {details.trailer && (
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                openTrailer(details.trailer);
+                                            }}
+                                            className="flex items-center gap-2 bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg transition"
+                                        >
+                                            <Play className="w-4 h-4" />
+                                            Watch Trailer
+                                        </button>
+                                    )}
+
+                                    {!isWatched ? (
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                markAsWatched(movieTitle);
+                                            }}
+                                            className="flex items-center gap-2 bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg transition"
+                                        >
+                                            ✓ Mark as Watched
+                                        </button>
+                                    ) : (
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                markAsUnwatched(movieTitle);
+                                            }}
+                                            className="flex items-center gap-2 bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded-lg transition"
+                                        >
+                                            ↺ Mark as Unwatched
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                );
+            };
+
+            if (loading) {
+                return (
+                    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900 text-white flex items-center justify-center">
+                        <div className="text-center">
+                            <Film className="w-16 h-16 text-blue-400 animate-pulse mx-auto mb-4" />
+                            <p className="text-xl">Loading your movies...</p>
+                        </div>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900 text-white">
+                    <div className="bg-black bg-opacity-50 shadow-lg backdrop-blur sticky top-0 z-10">
+                        <div className="max-w-6xl mx-auto px-4 py-6">
+                            <div className="flex items-center justify-between flex-wrap gap-4">
+                                <div className="flex items-center gap-3">
+                                    <Film className="w-8 h-8 text-blue-400" />
+                                    <h1 className="text-3xl font-bold">What Should I Watch?</h1>
+                                </div>
+                                <div className="flex gap-3">
+                                    <button
+                                        onClick={() => {
+                                            setShowFullList(!showFullList);
+                                            setShowWatchedList(false);
+                                        }}
+                                        className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${
+                                            showFullList ? 'bg-blue-600' : 'bg-gray-800 hover:bg-gray-700'
+                                        }`}
+                                    >
+                                        <List className="w-5 h-5" />
+                                        To Watch ({watchlist.filter(m => !watchedMovies.includes(m)).length})
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            setShowWatchedList(!showWatchedList);
+                                            setShowFullList(false);
+                                        }}
+                                        className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${
+                                            showWatchedList ? 'bg-green-600' : 'bg-gray-800 hover:bg-gray-700'
+                                        }`}
+                                    >
+                                        ✓ Watched ({watchedMovies.length})
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="max-w-6xl mx-auto px-4 py-12">
+                        {!showFullList && !showWatchedList && (
+                            <div className="mb-12">
+                                {watchlist.filter(m => !watchedMovies.includes(m)).length === 0 ? (
+                                    <div className="text-center py-12">
+                                        <h2 className="text-2xl font-semibold mb-4">🎉 You've watched everything!</h2>
+                                        <p className="text-gray-400 mb-6">Congratulations! You've completed your entire watchlist.</p>
+                                        <button
+                                            onClick={() => setShowWatchedList(true)}
+                                            className="bg-green-600 hover:bg-green-700 px-6 py-3 rounded-lg transition"
+                                        >
+                                            View Watched Movies
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <>
+                                        <h2 className="text-2xl font-semibold mb-6 text-center">
+                                            Here are {suggestions.length} suggestion{suggestions.length !== 1 ? 's' : ''}:
+                                        </h2>
+
+                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                                            {suggestions.map((movie, index) => (
+                                                <div key={index} onClick={() => openMovieDetails(movie)} className="cursor-pointer">
+                                                    <MovieCard movieTitle={movie} compact={true} />
+                                                </div>
+                                            ))}
+                                        </div>
+
+                                        <div className="flex justify-center">
+                                            <button
+                                                onClick={getNewSuggestions}
+                                                className="flex items-center gap-3 bg-blue-600 hover:bg-blue-700 px-8 py-4 rounded-lg transition text-lg font-semibold shadow-lg"
+                                            >
+                                                <Shuffle className="w-6 h-6" />
+                                                Give Me Different Movies
+                                            </button>
+                                        </div>
+                                    </>
+                                )}
+                            </div>
+                        )}
+
+                        {showFullList && (
+                            <div>
+                                <h3 className="text-2xl font-semibold mb-6">
+                                    Movies To Watch ({watchlist.filter(m => !watchedMovies.includes(m)).length})
+                                </h3>
+                                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                                    {watchlist
+                                        .filter(m => !watchedMovies.includes(m))
+                                        .sort()
+                                        .map((movie, index) => (
+                                            <div key={index} onClick={() => openMovieDetails(movie)} className="cursor-pointer">
+                                                <MovieCard movieTitle={movie} compact={true} />
+                                            </div>
+                                        ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {showWatchedList && (
+                            <div>
+                                <h3 className="text-2xl font-semibold mb-6">
+                                    Watched Movies ({watchedMovies.length})
+                                </h3>
+                                {watchedMovies.length === 0 ? (
+                                    <div className="text-center py-12 text-gray-400">
+                                        <p>You haven't marked any movies as watched yet.</p>
+                                    </div>
+                                ) : (
+                                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                                        {watchedMovies
+                                            .sort()
+                                            .map((movie, index) => (
+                                                <div key={index} onClick={() => openMovieDetails(movie)} className="cursor-pointer">
+                                                    <MovieCard movieTitle={movie} compact={true} />
+                                                </div>
+                                            ))}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
+
+                    {selectedTrailer && (
+                        <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 p-4">
+                            <div className="relative w-full max-w-4xl">
+                                <button
+                                    onClick={closeTrailer}
+                                    className="absolute -top-12 right-0 text-white hover:text-gray-300 transition"
+                                >
+                                    <X className="w-8 h-8" />
+                                </button>
+                                <div className="relative pt-[56.25%]">
+                                    <iframe
+                                        className="absolute inset-0 w-full h-full"
+                                        src={`https://www.youtube.com/embed/${selectedTrailer}`}
+                                        title="Movie Trailer"
+                                        frameBorder="0"
+                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                        allowFullScreen
+                                    ></iframe>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {selectedMovie && (
+                        <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 p-4 overflow-y-auto">
+                            <div className="relative w-full max-w-5xl my-8">
+                                <button
+                                    onClick={closeMovieDetails}
+                                    className="absolute -top-12 right-0 text-white hover:text-gray-300 transition z-10"
+                                >
+                                    <X className="w-8 h-8" />
+                                </button>
+                                <div className="bg-gray-800 rounded-lg overflow-hidden shadow-2xl">
+                                    <MovieCard movieTitle={selectedMovie} compact={false} />
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        ReactDOM.render(<MoviePicker />, document.getElementById('root'));
+    </script>
+</body>
+</html>
