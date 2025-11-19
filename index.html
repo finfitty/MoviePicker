@@ -3,812 +3,165 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Movie Picker</title>
+    <title>MoviePicker</title>
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @keyframes cardShuffle {
-            0%, 100% { transform: translateX(0) rotate(0deg); opacity: 1; }
-            25% { transform: translateX(-20px) rotate(-5deg); opacity: 0.7; }
-            50% { transform: translateX(20px) rotate(5deg); opacity: 0.7; }
-            75% { transform: translateX(-10px) rotate(-2deg); opacity: 0.85; }
-        }
-        .card-shuffle-1 {
-            animation: cardShuffle 1.5s ease-in-out infinite;
-            animation-delay: 0s;
-        }
-        .card-shuffle-2 {
-            animation: cardShuffle 1.5s ease-in-out infinite;
-            animation-delay: 0.2s;
-        }
-        .card-shuffle-3 {
-            animation: cardShuffle 1.5s ease-in-out infinite;
-            animation-delay: 0.4s;
-        }
-        
-        .carousel-container {
-            scroll-snap-type: x mandatory;
-            -webkit-overflow-scrolling: touch;
-            scrollbar-width: none;
-        }
-        .carousel-container::-webkit-scrollbar {
-            display: none;
-        }
-        .carousel-item {
-            scroll-snap-align: center;
-            scroll-snap-stop: always;
-        }
+        @keyframes cardShuffle { 0%, 100% { transform: translateX(0); opacity: 1; } 50% { transform: translateX(20px); opacity: 0.7; } }
+        .card-shuffle-1 { animation: cardShuffle 1.5s ease-in-out infinite; }
+        .card-shuffle-2 { animation: cardShuffle 1.5s ease-in-out infinite; animation-delay: 0.2s; }
+        .card-shuffle-3 { animation: cardShuffle 1.5s ease-in-out infinite; animation-delay: 0.4s; }
     </style>
 </head>
 <body>
     <div id="root"></div>
-
     <script type="text/babel">
         const { useState, useEffect } = React;
-
-        // ============================================
-        // CONFIGURATION - ADD YOUR TMDB API KEY HERE
-        // ============================================
-        const TMDB_CONFIG = {
-            bearerToken: 'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI4NDZkYmQ3NzY5MmE3MDY3NGNlMTBhMWM2YjRkNjY2YyIsIm5iZiI6MTc2MzQyMzc5MS4wMDg5OTk4LCJzdWIiOiI2OTFiYjYyZmMzMjkxYzk2ODdjN2QyYTQiLCJzY29wZXMiOlsiYXBpX3JlYWQiXSwidmVyc2lvbiI6MX0.yceVQdz0-IeMdfCDLlmerZZZ9X95mX_5MUEuTHEKnXM'
-        };
-
-        // Lucide Icons (inline SVG components)
-        const Film = ({ className }) => (
-            <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/>
-                <line x1="7" y1="2" x2="7" y2="22"/>
-                <line x1="17" y1="2" x2="17" y2="22"/>
-                <line x1="2" y1="12" x2="22" y2="12"/>
-                <line x1="2" y1="7" x2="7" y2="7"/>
-                <line x1="2" y1="17" x2="7" y2="17"/>
-                <line x1="17" y1="17" x2="22" y2="17"/>
-                <line x1="17" y1="7" x2="22" y2="7"/>
-            </svg>
-        );
-
-        const Shuffle = ({ className }) => (
-            <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="16 3 21 3 21 8"/>
-                <line x1="4" y1="20" x2="21" y2="3"/>
-                <polyline points="21 16 21 21 16 21"/>
-                <line x1="15" y1="15" x2="21" y2="21"/>
-                <line x1="4" y1="4" x2="9" y2="9"/>
-            </svg>
-        );
-
-        const ChevronLeft = ({ className }) => (
-            <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="15 18 9 12 15 6"/>
-            </svg>
-        );
-
-        const ChevronRight = ({ className }) => (
-            <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="9 18 15 12 9 6"/>
-            </svg>
-        );
-
-        const List = ({ className }) => (
-            <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="8" y1="6" x2="21" y2="6"/>
-                <line x1="8" y1="12" x2="21" y2="12"/>
-                <line x1="8" y1="18" x2="21" y2="18"/>
-                <line x1="3" y1="6" x2="3.01" y2="6"/>
-                <line x1="3" y1="12" x2="3.01" y2="12"/>
-                <line x1="3" y1="18" x2="3.01" y2="18"/>
-            </svg>
-        );
-
-        const Clock = ({ className }) => (
-            <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="10"/>
-                <polyline points="12 6 12 12 16 14"/>
-            </svg>
-        );
-
-        const Star = ({ className }) => (
-            <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-            </svg>
-        );
-
-        const Play = ({ className }) => (
-            <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <polygon points="5 3 19 12 5 21 5 3"/>
-            </svg>
-        );
-
-        const X = ({ className }) => (
-            <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="18" y1="6" x2="6" y2="18"/>
-                <line x1="6" y1="6" x2="18" y2="18"/>
-            </svg>
-        );
+        const TOKEN = 'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI4NDZkYmQ3NzY5MmE3MDY3NGNlMTBhMWM2YjRkNjY2YyIsIm5iZiI6MTc2MzQyMzc5MS4wMDg5OTk4LCJzdWIiOiI2OTFiYjYyZmMzMjkxYzk2ODdjN2QyYTQiLCJzY29wZXMiOlsiYXBpX3JlYWQiXSwidmVyc2lvbiI6MX0.yceVQdz0-IeMdfCDLlmerZZZ9X95mX_5MUEuTHEKnXM';
+        
+        const Film = ({className}) => <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="2" width="20" height="20" rx="2"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/></svg>;
+        const X = ({className}) => <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>;
+        const Play = ({className}) => <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>;
+        const Star = ({className}) => <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>;
+        const Clock = ({className}) => <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>;
+        const ChevronLeft = ({className}) => <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="15 18 9 12 15 6"/></svg>;
+        const ChevronRight = ({className}) => <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>;
+        const RefreshCw = ({className}) => <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="23 4 23 10 17 10"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>;
 
         function MoviePicker() {
-            const [suggestions, setSuggestions] = useState([]);
-            const [movieDetails, setMovieDetails] = useState({});
-            const [showFullList, setShowFullList] = useState(false);
-            const [showWatchedList, setShowWatchedList] = useState(false);
-            const [loading, setLoading] = useState(true);
-            const [selectedTrailer, setSelectedTrailer] = useState(null);
-            const [watchedMovies, setWatchedMovies] = useState([]);
-            const [selectedMovie, setSelectedMovie] = useState(null);
-            const [currentSlide, setCurrentSlide] = useState(0);
-            const [loadingMessage, setLoadingMessage] = useState('reading the tea leaves...');
+            const [state, setState] = useState({
+                suggestions: [], details: {}, loading: true, loadingMsg: 'reading the tea leaves...', 
+                trailer: null, watched: [], selected: null, slide: 0, filter: 'all',
+                myPicks: ["Scarface","Boogie Nights","Fargo","Raising Arizona","Norma Rae","My Life as a Dog","A River Runs Through It","Erin Brockovich","What's Eating Gilbert Grape","American Graffiti","Chinatown","One Flew Over the Cuckoo's Nest","Taxi Driver","Juno","Chariots of Fire","Psycho","Fried Green Tomatoes","Brokeback Mountain","Walk the Line"]
+            });
 
-            const watchlist = [
-                "Scarface", "Boogie Nights", "Fargo", "Raising Arizona", "Norma Rae",
-                "Farmer's Daughter", "My Life as a Dog", "A River Runs Through It",
-                "Erin Brockovich", "What's Eating Gilbert Grape", "American Graffiti",
-                "Chinatown", "Inside Moves", "Scarecrow", "Bye Bye Birdie",
-                "A Beautiful Mind", "Wedding Crashers", "Silence", "Box of Moonlight",
-                "Desperately Seeking Susan", "Easy Rider", "Sully", "Cool Hand Luke",
-                "Wild at Heart", "Ne Zha", "One Flew Over the Cuckoo's Nest",
-                "Taxi Driver", "Father of the Bride", "Passion Fish", "Juno",
-                "Seabiscuit", "Chariots of Fire", "Psycho", "Fried Green Tomatoes",
-                "Sweet Sixteen", "Drop Dead Gorgeous", "Zone of Interest", "Sexy Beast",
-                "The Hateful Eight", "Brokeback Mountain", "Walk the Line"
-            ];
+            // Oscar data - abbreviated for space
+            const bestPicture = ["Wings","All Quiet on the Western Front","Grand Hotel","It Happened One Night","Mutiny on the Bounty","Gone with the Wind","Rebecca","Casablanca","The Best Years of Our Lives","All About Eve","From Here to Eternity","On the Waterfront","The Bridge on the River Kwai","Ben-Hur","The Apartment","West Side Story","Lawrence of Arabia","My Fair Lady","The Sound of Music","In the Heat of the Night","Midnight Cowboy","Patton","The French Connection","The Godfather","The Sting","The Godfather Part II","One Flew Over the Cuckoo's Nest","Rocky","Annie Hall","The Deer Hunter","Kramer vs. Kramer","Ordinary People","Chariots of Fire","Gandhi","Terms of Endearment","Amadeus","Out of Africa","Platoon","The Last Emperor","Rain Man","Driving Miss Daisy","Dances with Wolves","The Silence of the Lambs","Unforgiven","Schindler's List","Forrest Gump","Braveheart","The English Patient","Titanic","Shakespeare in Love","American Beauty","Gladiator","A Beautiful Mind","Chicago","The Lord of the Rings: The Return of the King","Million Dollar Baby","Crash","The Departed","No Country for Old Men","Slumdog Millionaire","The Hurt Locker","The King's Speech","The Artist","Argo","12 Years a Slave","Birdman","Spotlight","Moonlight","The Shape of Water","Green Book","Parasite","Nomadland","CODA","Everything Everywhere All at Once","Oppenheimer"];
+            const otherWinners = ["Traffic","Training Day","Monster's Ball","The Pianist","Mystic River","The Aviator","Capote","The Queen","There Will Be Blood","Milk","Precious","The Fighter","The Iron Lady","Silver Linings Playbook","Dallas Buyers Club","Whiplash","Still Alice","The Revenant","Manchester by the Sea","Three Billboards Outside Ebbing, Missouri","Bohemian Rhapsody","Judy","Joker","The Father","King Richard","The Whale","Tár","Poor Things"];
+            const foreign = ["Cinema Paradiso","Life Is Beautiful","All About My Mother","Crouching Tiger, Hidden Dragon","Nowhere in Africa","The Barbarian Invasions","The Sea Inside","The Lives of Others","Departures","The Secret in Their Eyes","A Separation","Amour","The Great Beauty","Ida","Son of Saul","The Salesman","A Fantastic Woman","Roma","Parasite","Another Round","Drive My Car","All Quiet on the Western Front","The Zone of Interest"];
+            const runnerUps = ["Fargo","L.A. Confidential","Saving Private Ryan","The Sixth Sense","Crouching Tiger, Hidden Dragon","Erin Brockovich","The Lord of the Rings: The Fellowship of the Ring","The Pianist","Brokeback Mountain","Juno","There Will Be Blood","Avatar","Inception","The Social Network","Lincoln","Her","The Grand Budapest Hotel","Mad Max: Fury Road","La La Land","Get Out","Roma","Joker","1917","Dune","The Fabelmans","Barbie","Killers of the Flower Moon","Poor Things"];
+
+            const allMovies = [...new Set([...state.myPicks, ...bestPicture, ...otherWinners, ...foreign, ...runnerUps])];
+
+            const getCats = (m) => {
+                const c = [];
+                if (state.myPicks.includes(m)) c.push({label:'My Picks',color:'bg-purple-600'});
+                if (bestPicture.includes(m) || otherWinners.includes(m) || foreign.includes(m)) c.push({label:'Winner',color:'bg-yellow-600'});
+                if (runnerUps.includes(m)) c.push({label:'Runner-up',color:'bg-blue-600'});
+                return c;
+            };
+
+            const getFiltered = () => {
+                if (state.filter === 'all') return allMovies;
+                if (state.filter === 'my-picks') return allMovies.filter(m => state.myPicks.includes(m));
+                if (state.filter === 'winners') return allMovies.filter(m => bestPicture.includes(m) || otherWinners.includes(m) || foreign.includes(m));
+                if (state.filter === 'runner-ups') return allMovies.filter(m => runnerUps.includes(m));
+                return allMovies;
+            };
 
             useEffect(() => {
-                fetchAllMovieDetails();
-                
-                // Cycle through loading messages
-                const messages = [
-                    'reading the tea leaves...',
-                    'checking weather...',
-                    'identifying mood...',
-                    'finding movies...'
-                ];
-                let index = 0;
-                const interval = setInterval(() => {
-                    index = (index + 1) % messages.length;
-                    setLoadingMessage(messages[index]);
+                fetchData();
+                const msgs = ['reading the tea leaves...','checking weather...','identifying mood...','finding movies...'];
+                let i = 0;
+                const int = setInterval(() => {
+                    i = (i + 1) % msgs.length;
+                    setState(s => ({...s, loadingMsg: msgs[i]}));
                 }, 2000);
-                
-                return () => clearInterval(interval);
+                return () => clearInterval(int);
             }, []);
 
-            const fetchAllMovieDetails = async () => {
-                setLoading(true);
-                const details = {};
-
-                const options = {
-                    method: 'GET',
-                    headers: {
-                        accept: 'application/json',
-                        Authorization: `Bearer ${TMDB_CONFIG.bearerToken}`
-                    }
-                };
-
-                // Fetch all movies in parallel batches for faster loading
-                const batchSize = 5;
-                for (let i = 0; i < watchlist.length; i += batchSize) {
-                    const batch = watchlist.slice(i, i + batchSize);
-                    await Promise.all(batch.map(async (movie) => {
+            const fetchData = async () => {
+                const d = {};
+                const opts = {headers: {accept: 'application/json', Authorization: `Bearer ${TOKEN}`}};
+                for (let i = 0; i < allMovies.length; i += 5) {
+                    await Promise.all(allMovies.slice(i, i+5).map(async (m) => {
                         try {
-                            const searchUrl = `https://api.themoviedb.org/3/search/movie?query=${encodeURIComponent(movie)}&include_adult=false&language=en-US&page=1`;
-                            const searchResponse = await fetch(searchUrl, options);
-
-                            if (!searchResponse.ok) return;
-
-                            const searchData = await searchResponse.json();
-
-                            if (searchData.results && searchData.results.length > 0) {
-                                const movieId = searchData.results[0].id;
-
-                                const [detailsResponse, creditsResponse, videosResponse, releaseDatesResponse] = await Promise.all([
-                                    fetch(`https://api.themoviedb.org/3/movie/${movieId}?language=en-US`, options),
-                                    fetch(`https://api.themoviedb.org/3/movie/${movieId}/credits?language=en-US`, options),
-                                    fetch(`https://api.themoviedb.org/3/movie/${movieId}/videos?language=en-US`, options),
-                                    fetch(`https://api.themoviedb.org/3/movie/${movieId}/release_dates`, options)
+                            const sr = await fetch(`https://api.themoviedb.org/3/search/movie?query=${encodeURIComponent(m)}&include_adult=false`, opts);
+                            const sd = await sr.json();
+                            if (sd.results?.length > 0) {
+                                const id = sd.results[0].id;
+                                const [dr, cr, vr, wr] = await Promise.all([
+                                    fetch(`https://api.themoviedb.org/3/movie/${id}`, opts),
+                                    fetch(`https://api.themoviedb.org/3/movie/${id}/credits`, opts),
+                                    fetch(`https://api.themoviedb.org/3/movie/${id}/videos`, opts),
+                                    fetch(`https://api.themoviedb.org/3/movie/${id}/watch/providers`, opts)
                                 ]);
-
-                                const movieDetails = await detailsResponse.json();
-                                const creditsData = await creditsResponse.json();
-                                const videosData = await videosResponse.json();
-                                const releaseDatesData = await releaseDatesResponse.json();
-
-                                const trailer = videosData.results?.find(v => v.type === 'Trailer' && v.site === 'YouTube');
-                                const topActors = creditsData.cast?.slice(0, 5).map(actor => actor.name) || [];
-                                
-                                // Get crew members
-                                const director = creditsData.crew?.find(person => person.job === 'Director')?.name;
-                                const editor = creditsData.crew?.find(person => person.job === 'Editor')?.name;
-                                const cinematographer = creditsData.crew?.find(person => person.job === 'Director of Photography')?.name;
-
-                                details[movie] = {
-                                    ...movieDetails,
-                                    actors: topActors,
-                                    trailer: trailer?.key,
-                                    release_dates: releaseDatesData,
-                                    director,
-                                    editor,
-                                    cinematographer
-                                };
+                                const md = await dr.json();
+                                const cd = await cr.json();
+                                const vd = await vr.json();
+                                const wd = await wr.json();
+                                d[m] = {...md, actors: cd.cast?.slice(0,5).map(a=>a.name)||[], trailer: vd.results?.find(v=>v.type==='Trailer'&&v.site==='YouTube')?.key, director: cd.crew?.find(p=>p.job==='Director')?.name, providers: wd.results?.US};
                             }
-                        } catch (error) {
-                            console.error(`Error fetching details for ${movie}:`, error);
-                        }
+                        } catch(e) {}
                     }));
                 }
-
-                setMovieDetails(details);
-                setLoading(false);
-                getNewSuggestions();
+                setState(s => ({...s, details: d, loading: false}));
+                newSuggestions();
             };
 
-            const getNewSuggestions = () => {
-                const unwatchedMovies = watchlist.filter(movie => !watchedMovies.includes(movie));
-
-                if (unwatchedMovies.length === 0) {
-                    setSuggestions([]);
-                    return;
-                }
-
-                const shuffled = [...unwatchedMovies].sort(() => Math.random() - 0.5);
-                const count = Math.min(3, unwatchedMovies.length);
-                setSuggestions(shuffled.slice(0, count));
-                setCurrentSlide(0);
+            const newSuggestions = () => {
+                const f = getFiltered().filter(m => !state.watched.includes(m));
+                if (f.length === 0) { setState(s => ({...s, suggestions: []})); return; }
+                const sh = [...f].sort(() => Math.random() - 0.5);
+                setState(s => ({...s, suggestions: sh.slice(0,3), slide: 0}));
             };
 
-            const markAsWatched = (movieTitle) => {
-                if (!watchedMovies.includes(movieTitle)) {
-                    const newWatched = [...watchedMovies, movieTitle];
-                    setWatchedMovies(newWatched);
-                    setSuggestions(prev => prev.filter(m => m !== movieTitle));
-
-                    setTimeout(() => {
-                        const unwatchedMovies = watchlist.filter(movie => !newWatched.includes(movie));
-                        if (suggestions.filter(m => !newWatched.includes(m)).length < 3 && unwatchedMovies.length > 0) {
-                            getNewSuggestions();
-                        }
-                    }, 100);
-                }
-            };
-
-            const markAsUnwatched = (movieTitle) => {
-                setWatchedMovies(prev => prev.filter(m => m !== movieTitle));
-            };
-
-            const openTrailer = (trailerKey) => {
-                setSelectedTrailer(trailerKey);
-            };
-
-            const closeTrailer = () => {
-                setSelectedTrailer(null);
-            };
-
-            const openMovieDetails = (movieTitle) => {
-                setSelectedMovie(movieTitle);
-            };
-
-            const closeMovieDetails = () => {
-                setSelectedMovie(null);
-            };
-
-            const MovieCard = ({ movieTitle, compact = false, showFullDetails = false }) => {
-                const details = movieDetails[movieTitle];
-                const isWatched = watchedMovies.includes(movieTitle);
-
-                if (!details) {
+            const Card = ({m, compact}) => {
+                const d = state.details[m];
+                const cats = getCats(m);
+                if (!d) return <div className="bg-gray-800 rounded-lg p-6"><p className="text-gray-300">Loading...</p></div>;
+                
+                if (!compact) {
                     return (
-                        <div className="bg-white bg-opacity-10 backdrop-blur rounded-lg p-6">
-                            <h3 className="text-2xl font-semibold mb-2">{movieTitle}</h3>
-                            <p className="text-gray-300">Loading details...</p>
+                        <div className="bg-gray-800 rounded-lg overflow-hidden shadow-xl">
+                            <div className="flex flex-col md:flex-row max-h-[80vh]">
+                                <div className="md:w-1/3 flex-shrink-0">
+                                    {d.poster_path ? <img src={`https://image.tmdb.org/t/p/w500${d.poster_path}`} alt={m} className="w-full h-full object-cover"/> : <div className="w-full h-64 md:h-full bg-gray-700 flex items-center justify-center"><Film className="w-16 h-16 text-gray-500"/></div>}
+                                </div>
+                                <div className="p-6 flex-1 overflow-y-auto">
+                                    <h3 className="text-2xl font-bold mb-3">{d.title}</h3>
+                                    {cats.length > 0 && <div className="flex flex-wrap gap-2 mb-3">{cats.map((c,i) => <span key={i} className={`${c.color} text-white px-3 py-1 rounded-full text-xs font-semibold`}>{c.label}</span>)}</div>}
+                                    <div className="flex flex-wrap gap-4 mb-4 text-sm">
+                                        {d.vote_average > 0 && <div className="flex items-center gap-1"><Star className="w-4 h-4 text-yellow-400 fill-yellow-400"/><span className="font-semibold">{d.vote_average.toFixed(1)}</span><span className="text-gray-400">/10</span></div>}
+                                        {d.runtime && <div className="flex items-center gap-1"><Clock className="w-4 h-4 text-blue-400"/><span>{d.runtime} min</span></div>}
+                                    </div>
+                                    {d.overview && <p className="text-gray-300 mb-4">{d.overview}</p>}
+                                    {d.actors?.length > 0 && <div className="mb-3"><p className="text-sm"><span className="text-gray-400">Starring:</span> {d.actors.join(', ')}</p></div>}
+                                    {d.director && <div className="mb-4"><p className="text-sm"><span className="text-gray-400">Director:</span> {d.director}</p></div>}
+                                    {d.providers && <div className="mb-4"><p className="text-sm text-gray-400 mb-2">Where to watch:</p><div className="flex flex-wrap gap-2">{d.providers.flatrate?.map((p,i) => <span key={i} className="text-xs bg-gray-700 px-2 py-1 rounded">{p.provider_name}</span>)}{!d.providers.flatrate?.length && d.providers.rent?.slice(0,3).map((p,i) => <span key={i} className="text-xs bg-gray-700 px-2 py-1 rounded">Rent: {p.provider_name}</span>)}{!d.providers.flatrate?.length && !d.providers.rent?.length && <span className="text-xs text-gray-500">Not available</span>}</div></div>}
+                                    <div className="flex flex-wrap gap-3">
+                                        {d.trailer && <button onClick={() => setState(s=>({...s,trailer:d.trailer}))} className="flex items-center gap-2 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white px-4 py-2.5 rounded-full transition shadow-lg font-medium text-sm"><Play className="w-4 h-4"/>Watch trailer</button>}
+                                        {!state.watched.includes(m) ? <button onClick={() => setState(s=>({...s,watched:[...s.watched,m]}))} className="flex items-center gap-2 border-2 border-gray-600 text-gray-300 hover:border-gray-500 hover:text-white px-4 py-2 rounded-full transition font-medium text-sm">Mark as watched</button> : <button onClick={() => setState(s=>({...s,watched:s.watched.filter(w=>w!==m)}))} className="flex items-center gap-2 border-2 border-gray-600 text-gray-300 hover:border-gray-500 hover:text-white px-4 py-2 rounded-full transition font-medium text-sm">Mark as unwatched</button>}
+                                        {!state.myPicks.includes(m) && <button onClick={() => setState(s=>({...s,myPicks:[...s.myPicks,m]}))} className="flex items-center gap-2 border-2 border-purple-600 text-purple-400 hover:bg-purple-600 hover:text-white px-4 py-2 rounded-full transition font-medium text-sm">Add to my picks</button>}
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     );
                 }
-
-            const MovieCard = ({ movieTitle, compact = false, showFullDetails = false }) => {
-                const details = movieDetails[movieTitle];
-                const isWatched = watchedMovies.includes(movieTitle);
-
-                if (!details) {
-                    return (
-                        <div className="bg-white bg-opacity-10 backdrop-blur rounded-lg p-6">
-                            <h3 className="text-2xl font-semibold mb-2">{movieTitle}</h3>
-                            <p className="text-gray-300">Loading details...</p>
-                        </div>
-                    );
-                }
-
-                if (showFullDetails) {
+                
                 return (
-                    <div className={`bg-gray-800 rounded-lg overflow-hidden shadow-xl ${isWatched ? 'opacity-75' : ''}`}>
-                        <div className="flex flex-col md:flex-row max-h-[70vh]">
-                            <div className="md:w-1/3 flex-shrink-0 relative">
-                                {details.poster_path ? (
-                                    <img
-                                        src={`https://image.tmdb.org/t/p/w500${details.poster_path}`}
-                                        alt={movieTitle}
-                                        className="w-full h-full object-cover"
-                                    />
-                                ) : (
-                                    <div className="w-full h-64 md:h-full bg-gray-700 flex items-center justify-center">
-                                        <Film className="w-16 h-16 text-gray-500" />
-                                    </div>
-                                )}
-                            </div>
-                            <div className="p-6 flex-1 overflow-y-auto">
-                                <h3 className="text-2xl font-bold mb-3">{details.title}</h3>
-                                <div className="flex flex-wrap gap-4 mb-4 text-sm">
-                                    {details.vote_average > 0 && (
-                                        <div className="flex items-center gap-1">
-                                            <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-                                            <span className="font-semibold">{details.vote_average.toFixed(1)}</span>
-                                            <span className="text-gray-400">/10</span>
-                                        </div>
-                                    )}
-                                    {details.runtime && (
-                                        <div className="flex items-center gap-1">
-                                            <Clock className="w-4 h-4 text-blue-400" />
-                                            <span>{details.runtime} min</span>
-                                        </div>
-                                    )}
-                                </div>
-                                {details.overview && (
-                                    <p className="text-gray-300 mb-4">{details.overview}</p>
-                                )}
-                                {details.actors && details.actors.length > 0 && (
-                                    <div className="mb-4">
-                                        <p className="text-sm text-gray-400 mb-1">Starring:</p>
-                                        <p className="text-sm">{details.actors.join(', ')}</p>
-                                    </div>
-                                )}
-                                <div className="flex flex-wrap gap-3 mt-4">
-                                    {details.trailer && (
-                                        <button
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                openTrailer(details.trailer);
-                                            }}
-                                            className="flex items-center gap-2 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white px-4 py-2.5 rounded-full transition shadow-lg font-medium text-sm"
-                                        >
-                                            <Play className="w-4 h-4" />
-                                            Watch trailer
-                                        </button>
-                                    )}
-                                    {!isWatched ? (
-                                        <button
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                markAsWatched(movieTitle);
-                                            }}
-                                            className="flex items-center gap-2 border-2 border-gray-600 text-gray-300 hover:border-gray-500 hover:text-white px-4 py-2 rounded-full transition font-medium text-sm"
-                                        >
-                                            Mark as watched
-                                        </button>
-                                    ) : (
-                                        <button
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                markAsUnwatched(movieTitle);
-                                            }}
-                                            className="flex items-center gap-2 border-2 border-gray-600 text-gray-300 hover:border-gray-500 hover:text-white px-4 py-2 rounded-full transition font-medium text-sm"
-                                        >
-                                            Mark as unwatched
-                                        </button>
-                                    )}
-                                </div>
-                            </div>
+                    <div onClick={() => setState(s=>({...s,selected:m}))} className="bg-gray-800 rounded-lg overflow-hidden shadow-xl hover:shadow-2xl transition hover:scale-105 cursor-pointer" style={{height:'420px'}}>
+                        <div className="relative">
+                            {d.poster_path ? <img src={`https://image.tmdb.org/t/p/w300${d.poster_path}`} alt={m} className="w-full aspect-[2/3] object-cover"/> : <div className="w-full aspect-[2/3] bg-gray-700 flex items-center justify-center"><Film className="w-8 h-8 text-gray-500"/></div>}
+                            <div className="absolute top-2 left-2 flex flex-wrap gap-1">{cats.map((c,i) => <span key={i} className={`${c.color} text-white px-2 py-0.5 rounded-full text-xs font-semibold`}>{c.label}</span>)}</div>
                         </div>
-                    </div>
-                );
-            }
-
-            if (compact) {
-                    return (
-                        <div 
-                            onClick={() => openMovieDetails(movieTitle)}
-                            className="bg-gray-800 rounded-lg overflow-hidden shadow-xl hover:shadow-2xl transition hover:scale-105 h-full flex flex-col text-xs cursor-pointer"
-                            style={{ height: '520px' }}
-                        >
-                            <div className="relative flex-shrink-0">
-                                {details.poster_path ? (
-                                    <img
-                                        src={`https://image.tmdb.org/t/p/w200${details.poster_path}`}
-                                        alt={movieTitle}
-                                        className="w-full aspect-[2/3] object-cover"
-                                    />
-                                ) : (
-                                    <div className="w-full aspect-[2/3] bg-gray-700 flex items-center justify-center">
-                                        <Film className="w-8 h-8 text-gray-500" />
-                                    </div>
-                                )}
-                                {isWatched && (
-                                    <div className="absolute top-1 right-1 bg-green-600 text-white px-2 py-0.5 rounded-full text-xs font-semibold">
-                                        Watched
-                                    </div>
-                                )}
+                        <div className="p-3">
+                            <h3 className="font-bold text-sm leading-tight mb-1 line-clamp-2">{d.title}</h3>
+                            <div className="flex items-center gap-2 text-xs text-gray-400 mb-1">
+                                {d.vote_average > 0 && <div className="flex items-center gap-1"><Star className="w-3 h-3 text-yellow-400 fill-yellow-400"/><span>{d.vote_average.toFixed(1)}</span></div>}
+                                {d.runtime && <span>{d.runtime} min</span>}
                             </div>
-                            <div className="p-3 flex-1 flex flex-col justify-between overflow-hidden">
-                                <div>
-                                    <h3 className="font-bold text-sm leading-tight mb-2">{details.title}</h3>
-                                    
-                                    {/* Meta info */}
-                                    <div className="flex flex-wrap gap-2 mb-2 text-xs">
-                                        {details.vote_average > 0 && (
-                                            <div className="flex items-center gap-1">
-                                                <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
-                                                <span>{details.vote_average.toFixed(1)}</span>
-                                            </div>
-                                        )}
-                                        {details.runtime && <span>{details.runtime} min</span>}
-                                        {details.release_dates?.results && (() => {
-                                            const usRelease = details.release_dates.results.find(r => r.iso_3166_1 === 'US');
-                                            const certification = usRelease?.release_dates?.[0]?.certification;
-                                            if (certification) {
-                                                return <span className="px-1.5 py-0.5 bg-gray-700 rounded">{certification}</span>;
-                                            }
-                                            return null;
-                                        })()}
-                                    </div>
-
-                                    {/* Genres */}
-                                    {details.genres && details.genres.length > 0 && (
-                                        <div className="text-xs text-gray-400 mb-2">
-                                            {details.genres.slice(0, 2).map(g => g.name).join(', ')}
-                                        </div>
-                                    )}
-
-                                    {/* Description - truncated */}
-                                    {details.overview && (
-                                        <p className="text-xs text-gray-300 line-clamp-2 lg:line-clamp-5 mb-2">
-                                            {details.overview}
-                                        </p>
-                                    )}
-                                </div>
-
-                                <div className="space-y-1 text-xs">
-                                    {/* Starring - truncated */}
-                                    {details.actors && details.actors.length > 0 && (
-                                        <p className="text-gray-400 truncate">
-                                            <span>Starring:</span> {details.actors.slice(0, 2).join(', ')}{details.actors.length > 2 ? '...' : ''}
-                                        </p>
-                                    )}
-                                    
-                                    {/* Director - truncated */}
-                                    {details.director && (
-                                        <p className="text-gray-400 truncate">
-                                            <span>Director:</span> {details.director}
-                                        </p>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-                    );
-                }
-                    return (
-                        <div className={`bg-gray-800 rounded-lg overflow-hidden shadow-xl ${isWatched ? 'opacity-75' : ''}`}>
-                            <div className="flex flex-col lg:flex-row max-h-[80vh]">
-                                {/* Poster */}
-                                <div className="lg:w-2/5 flex-shrink-0 relative">
-                                    {details.poster_path ? (
-                                        <img
-                                            src={`https://image.tmdb.org/t/p/w500${details.poster_path}`}
-                                            alt={movieTitle}
-                                            className="w-full h-64 lg:h-full object-cover"
-                                        />
-                                    ) : (
-                                        <div className="w-full h-64 lg:h-full bg-gray-700 flex items-center justify-center">
-                                            <Film className="w-16 h-16 text-gray-500" />
-                                        </div>
-                                    )}
-                                    {isWatched && (
-                                        <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-                                            <div className="bg-green-600 text-white px-4 py-2 rounded-lg font-semibold">
-                                                ✓ Watched
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-
-                                {/* Details */}
-                                <div className="p-4 lg:p-6 flex-1 overflow-y-auto">
-                                    <h3 className="text-xl lg:text-2xl font-bold mb-3">{details.title}</h3>
-
-                                    <div className="flex flex-wrap gap-3 mb-3 text-xs lg:text-sm">
-                                        {details.vote_average > 0 && (
-                                            <div className="flex items-center gap-1">
-                                                <Star className="w-3 h-3 lg:w-4 lg:h-4 text-yellow-400 fill-yellow-400" />
-                                                <span className="font-semibold">{details.vote_average.toFixed(1)}</span>
-                                                <span className="text-gray-400">/10</span>
-                                            </div>
-                                        )}
-
-                                        {details.runtime && (
-                                            <div className="flex items-center gap-1">
-                                                <Clock className="w-3 h-3 lg:w-4 lg:h-4 text-blue-400" />
-                                                <span>{details.runtime} min</span>
-                                            </div>
-                                        )}
-
-                                        {details.release_date && (
-                                            <div className="text-gray-300">
-                                                {new Date(details.release_date).getFullYear()}
-                                            </div>
-                                        )}
-                                        
-                                        {details.release_dates?.results && (() => {
-                                            const usRelease = details.release_dates.results.find(r => r.iso_3166_1 === 'US');
-                                            const certification = usRelease?.release_dates?.[0]?.certification;
-                                            if (certification) {
-                                                return (
-                                                    <span className="px-2 py-1 bg-gray-700 text-xs font-semibold rounded">
-                                                        {certification}
-                                                    </span>
-                                                );
-                                            }
-                                            return null;
-                                        })()}
-                                    </div>
-
-                                    {details.genres && details.genres.length > 0 && (
-                                        <div className="flex flex-wrap gap-2 mb-3">
-                                            {details.genres.map(genre => (
-                                                <span
-                                                    key={genre.id}
-                                                    className="px-2 py-1 bg-blue-600 bg-opacity-50 rounded-full text-xs"
-                                                >
-                                                    {genre.name}
-                                                </span>
-                                            ))}
-                                        </div>
-                                    )}
-
-                                    {details.overview && (
-                                        <p className="text-gray-300 mb-3 leading-relaxed text-sm lg:text-base">
-                                            {details.overview}
-                                        </p>
-                                    )}
-
-                                    {details.actors && details.actors.length > 0 && (
-                                        <div className="mb-3">
-                                            <p className="text-xs lg:text-sm text-gray-400 mb-1">Starring:</p>
-                                            <p className="text-xs lg:text-sm">{details.actors.join(', ')}</p>
-                                        </div>
-                                    )}
-
-                                    {/* Crew Information */}
-                                    <div className="mb-4 space-y-1">
-                                        {details.director && (
-                                            <p className="text-xs lg:text-sm"><span className="text-gray-400">Director:</span> {details.director}</p>
-                                        )}
-                                        {details.cinematographer && (
-                                            <p className="text-xs lg:text-sm"><span className="text-gray-400">Cinematographer:</span> {details.cinematographer}</p>
-                                        )}
-                                        {details.editor && (
-                                            <p className="text-xs lg:text-sm"><span className="text-gray-400">Editor:</span> {details.editor}</p>
-                                        )}
-                                    </div>
-
-                                    <div className="flex flex-wrap gap-2 lg:gap-3 mt-4">
-                                        {details.trailer && (
-                                            <button
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    openTrailer(details.trailer);
-                                                }}
-                                                className="flex items-center gap-2 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white px-4 py-2.5 rounded-full transition shadow-lg font-medium text-sm"
-                                            >
-                                                <Play className="w-4 h-4" />
-                                                Watch trailer
-                                            </button>
-                                        )}
-
-                                        {!isWatched ? (
-                                            <button
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    markAsWatched(movieTitle);
-                                                }}
-                                                className="flex items-center gap-2 border-2 border-gray-600 text-gray-300 hover:border-gray-500 hover:text-white px-4 py-2 rounded-full transition font-medium text-sm"
-                                            >
-                                                ✓ Mark as watched
-                                            </button>
-                                        ) : (
-                                            <button
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    markAsUnwatched(movieTitle);
-                                                }}
-                                                className="flex items-center gap-2 border-2 border-gray-600 text-gray-300 hover:border-gray-500 hover:text-white px-4 py-2 rounded-full transition font-medium text-sm"
-                                            >
-                                                ↺ Mark as unwatched
-                                            </button>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    );
-                }
-
-                if (compact) {
-                    return (
-                        <div className="bg-gray-800 rounded-lg overflow-hidden shadow-xl hover:shadow-2xl transition hover:scale-105 h-full flex flex-col text-xs">
-                            <div className="relative flex-shrink-0">
-                                {details.poster_path ? (
-                                    <img
-                                        src={`https://image.tmdb.org/t/p/w200${details.poster_path}`}
-                                        alt={movieTitle}
-                                        className="w-full aspect-[2/3] object-cover"
-                                    />
-                                ) : (
-                                    <div className="w-full aspect-[2/3] bg-gray-700 flex items-center justify-center">
-                                        <Film className="w-8 h-8 text-gray-500" />
-                                    </div>
-                                )}
-                                {isWatched && (
-                                    <div className="absolute top-1 right-1 bg-green-600 text-white px-2 py-0.5 rounded-full text-xs font-semibold">
-                                        ✓
-                                    </div>
-                                )}
-                            </div>
-                            <div className="p-2 flex-1 flex flex-col justify-between">
-                                {/* Title and Runtime */}
-                                <div>
-                                    <h3 className="font-bold text-xs leading-tight line-clamp-2 mb-1">{details.title}</h3>
-                                    {details.runtime && (
-                                        <p className="text-xs text-gray-400">{details.runtime} min</p>
-                                    )}
-                                </div>
-
-                                <div className="space-y-1">
-                                    {/* MPAA Rating */}
-                                    <div>
-                                        {details.release_dates?.results && (() => {
-                                            const usRelease = details.release_dates.results.find(r => r.iso_3166_1 === 'US');
-                                            const certification = usRelease?.release_dates?.[0]?.certification;
-                                            if (certification) {
-                                                return (
-                                                    <span className="inline-block px-1.5 py-0.5 bg-gray-700 text-xs font-semibold rounded">
-                                                        {certification}
-                                                    </span>
-                                                );
-                                            }
-                                            return <span className="text-xs text-transparent">-</span>;
-                                        })()}
-                                    </div>
-
-                                    {/* Genres */}
-                                    <div className="text-xs text-gray-400 line-clamp-1">
-                                        {details.genres && details.genres.length > 0 
-                                            ? details.genres.slice(0, 2).map(g => g.name).join(', ')
-                                            : '-'
-                                        }
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    );
-                }
-
-                return (
-                    <div className={`bg-gray-800 rounded-lg overflow-hidden shadow-xl ${isWatched ? 'opacity-75' : ''}`}>
-                        <div className="flex flex-col md:flex-row">
-                            <div className="md:w-1/3 flex-shrink-0 relative">
-                                {details.poster_path ? (
-                                    <img
-                                        src={`https://image.tmdb.org/t/p/w500${details.poster_path}`}
-                                        alt={movieTitle}
-                                        className="w-full h-full object-cover"
-                                    />
-                                ) : (
-                                    <div className="w-full h-64 md:h-full bg-gray-700 flex items-center justify-center">
-                                        <Film className="w-16 h-16 text-gray-500" />
-                                    </div>
-                                )}
-                                {isWatched && (
-                                    <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-                                        <div className="bg-green-600 text-white px-4 py-2 rounded-lg font-semibold">
-                                            ✓ Watched
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-
-                            <div className="p-6 flex-1">
-                                <h3 className="text-2xl font-bold mb-3">{details.title}</h3>
-
-                                <div className="flex flex-wrap gap-4 mb-4 text-sm">
-                                    {details.vote_average > 0 && (
-                                        <div className="flex items-center gap-1">
-                                            <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-                                            <span className="font-semibold">{details.vote_average.toFixed(1)}</span>
-                                            <span className="text-gray-400">/10</span>
-                                        </div>
-                                    )}
-
-                                    {details.runtime && (
-                                        <div className="flex items-center gap-1">
-                                            <Clock className="w-4 h-4 text-blue-400" />
-                                            <span>{details.runtime} min</span>
-                                        </div>
-                                    )}
-
-                                    {details.release_date && (
-                                        <div className="text-gray-300">
-                                            {new Date(details.release_date).getFullYear()}
-                                        </div>
-                                    )}
-                                </div>
-
-                                {details.genres && details.genres.length > 0 && (
-                                    <div className="flex flex-wrap gap-2 mb-4">
-                                        {details.genres.map(genre => (
-                                            <span
-                                                key={genre.id}
-                                                className="px-3 py-1 bg-blue-600 bg-opacity-50 rounded-full text-xs"
-                                            >
-                                                {genre.name}
-                                            </span>
-                                        ))}
-                                    </div>
-                                )}
-
-                                {details.overview && (
-                                    <p className="text-gray-300 mb-4 leading-relaxed">
-                                        {details.overview}
-                                    </p>
-                                )}
-
-                                {details.actors && details.actors.length > 0 && (
-                                    <div className="mb-4">
-                                        <p className="text-sm text-gray-400 mb-1">Starring:</p>
-                                        <p className="text-sm">{details.actors.join(', ')}</p>
-                                    </div>
-                                )}
-
-                                <div className="flex flex-wrap gap-3 mt-4">
-                                    {details.trailer && (
-                                        <button
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                closeMovieDetails();
-                                                setTimeout(() => openTrailer(details.trailer), 100);
-                                            }}
-                                            className="flex items-center gap-2 bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg transition"
-                                        >
-                                            <Play className="w-4 h-4" />
-                                            Watch Trailer
-                                        </button>
-                                    )}
-
-                                    {!isWatched ? (
-                                        <button
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                markAsWatched(movieTitle);
-                                            }}
-                                            className="flex items-center gap-2 bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg transition"
-                                        >
-                                            ✓ Mark as Watched
-                                        </button>
-                                    ) : (
-                                        <button
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                markAsUnwatched(movieTitle);
-                                            }}
-                                            className="flex items-center gap-2 bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded-lg transition"
-                                        >
-                                            ↺ Mark as Unwatched
-                                        </button>
-                                    )}
-                                </div>
-                            </div>
+                            {d.overview && <p className="text-xs text-gray-300 line-clamp-2 mb-1">{d.overview}</p>}
+                            {d.director && <p className="text-xs text-gray-400 truncate">Dir: {d.director}</p>}
                         </div>
                     </div>
                 );
             };
 
-            if (loading) {
+            if (state.loading) {
                 return (
                     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900 text-white flex items-center justify-center">
                         <div className="text-center">
@@ -817,8 +170,8 @@
                                 <div className="w-32 h-48 bg-gray-800 rounded-lg card-shuffle-2"></div>
                                 <div className="w-32 h-48 bg-gray-800 rounded-lg card-shuffle-3"></div>
                             </div>
-                            <Film className="w-16 h-16 text-blue-400 animate-pulse mx-auto mb-4" />
-                            <p className="text-xl">{loadingMessage}</p>
+                            <Film className="w-16 h-16 text-blue-400 animate-pulse mx-auto mb-4"/>
+                            <p className="text-xl">{state.loadingMsg}</p>
                         </div>
                     </div>
                 );
@@ -827,246 +180,55 @@
             return (
                 <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900 text-white">
                     <div className="bg-black bg-opacity-50 shadow-lg backdrop-blur sticky top-0 z-10">
-                        <div className="max-w-6xl mx-auto px-4 py-6">
-                            <div className="flex items-center justify-between flex-wrap gap-4">
-                                <div className="flex items-center gap-3">
-                                    <Film className="w-8 h-8 text-blue-400" />
-                                    <h1 className="text-3xl font-bold">What Should I Watch?</h1>
+                        <div className="max-w-6xl mx-auto px-3 lg:px-4 py-3 lg:py-4">
+                            <div className="flex items-center justify-between flex-wrap gap-2">
+                                <div className="flex flex-col gap-0 cursor-pointer hover:opacity-80 transition" onClick={() => {setState(s=>({...s,filter:'all',selected:null})); newSuggestions();}}>
+                                    <div className="flex items-center gap-2"><Film className="w-5 h-5 lg:w-7 lg:h-7 text-blue-400"/><h1 className="text-lg lg:text-2xl font-bold">MoviePicker</h1></div>
+                                    <p className="text-xs lg:text-sm text-gray-400 ml-7 lg:ml-9">{state.filter==='all'?'All movies':state.filter==='my-picks'?'My picks':state.filter==='winners'?'Academy Award winners':'Best Picture runner-up'}</p>
                                 </div>
-                                <div className="flex gap-3">
-                                    <button
-                                        onClick={() => {
-                                            setShowFullList(!showFullList);
-                                            setShowWatchedList(false);
-                                        }}
-                                        className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${
-                                            showFullList ? 'bg-blue-600' : 'bg-gray-800 hover:bg-gray-700'
-                                        }`}
-                                    >
-                                        <List className="w-5 h-5" />
-                                        To Watch ({watchlist.filter(m => !watchedMovies.includes(m)).length})
-                                    </button>
-                                    <button
-                                        onClick={() => {
-                                            setShowWatchedList(!showWatchedList);
-                                            setShowFullList(false);
-                                        }}
-                                        className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${
-                                            showWatchedList ? 'bg-green-600' : 'bg-gray-800 hover:bg-gray-700'
-                                        }`}
-                                    >
-                                        ✓ Watched ({watchedMovies.length})
-                                    </button>
+                                <div className="flex gap-2 items-center">
+                                    <button onClick={() => {setState(s=>({...s,filter:'my-picks'})); newSuggestions();}} className={`px-3 py-2 rounded-lg transition text-xs font-medium ${state.filter==='my-picks'?'bg-purple-600':'bg-gray-800 hover:bg-gray-700'}`}>My picks</button>
+                                    <button onClick={() => {setState(s=>({...s,filter:'winners'})); newSuggestions();}} className={`px-3 py-2 rounded-lg transition text-xs font-medium ${state.filter==='winners'?'bg-yellow-600':'bg-gray-800 hover:bg-gray-700'}`}>Winners</button>
+                                    <button onClick={() => {setState(s=>({...s,filter:'runner-ups'})); newSuggestions();}} className={`px-3 py-2 rounded-lg transition text-xs font-medium ${state.filter==='runner-ups'?'bg-blue-600':'bg-gray-800 hover:bg-gray-700'}`}>Runner-up</button>
+                                    <button onClick={newSuggestions} className="p-2 bg-gray-800 hover:bg-gray-700 rounded-lg transition"><RefreshCw className="w-4 h-4"/></button>
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     <div className="max-w-6xl mx-auto px-4 py-8">
-                        {!showFullList && !showWatchedList && (
-                            <div className="mb-12">
-                                {watchlist.filter(m => !watchedMovies.includes(m)).length === 0 ? (
-                                    <div className="text-center py-12">
-                                        <h2 className="text-2xl font-semibold mb-4">🎉 You've watched everything!</h2>
-                                        <p className="text-gray-400 mb-6">Congratulations! You've completed your entire watchlist.</p>
-                                        <button
-                                            onClick={() => setShowWatchedList(true)}
-                                            className="bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white px-6 py-3 rounded-full transition shadow-lg font-medium"
-                                        >
-                                            View watched movies
-                                        </button>
-                                    </div>
-                                ) : (
-                                    <>
-                                        {/* Refresh Button - subtle */}
-                                        <div className="flex justify-end mb-3 px-4">
-                                            <button
-                                                onClick={getNewSuggestions}
-                                                className="flex items-center gap-2 text-blue-400 hover:text-blue-300 transition text-sm font-medium"
-                                            >
-                                                <Shuffle className="w-4 h-4" />
-                                                New recommendations
-                                            </button>
+                        {getFiltered().filter(m=>!state.watched.includes(m)).length===0 ? (
+                            <div className="text-center py-12"><h2 className="text-2xl font-semibold mb-4">🎉 You've watched everything in this category!</h2></div>
+                        ) : (
+                            <>
+                                <div className="relative">
+                                    {state.slide > 0 && <button onClick={() => setState(s=>({...s,slide:s.slide-1}))} className="hidden lg:block absolute left-0 top-1/2 -translate-y-1/2 -translate-x-12 z-10 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg transition"><ChevronLeft className="w-6 h-6"/></button>}
+                                    {state.slide < state.suggestions.length-1 && <button onClick={() => setState(s=>({...s,slide:s.slide+1}))} className="hidden lg:block absolute right-0 top-1/2 -translate-y-1/2 translate-x-12 z-10 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg transition"><ChevronRight className="w-6 h-6"/></button>}
+                                    <div className="overflow-hidden">
+                                        <div className="flex gap-4 transition-transform duration-500 ease-out" style={{transform:`translateX(calc(-${state.slide*100}% - ${state.slide*16}px))`}} onTouchStart={e => e.currentTarget.dataset.startX=e.touches[0].clientX} onTouchEnd={e => {const d=parseFloat(e.currentTarget.dataset.startX)-e.changedTouches[0].clientX; if(Math.abs(d)>50){if(d>0 && state.slide<state.suggestions.length-1) setState(s=>({...s,slide:s.slide+1})); else if(d<0 && state.slide>0) setState(s=>({...s,slide:s.slide-1}));}}}>
+                                            {state.suggestions.map((m,i) => <div key={i} className="flex-shrink-0" style={{width:'calc(100% - 80px)'}}><Card m={m} compact={true}/></div>)}
                                         </div>
-
-                                        {/* Carousel Container */}
-                                        <div className="relative">
-                                            {/* Navigation Arrows - Hidden on mobile */}
-                                            {currentSlide > 0 && (
-                                                <button
-                                                    onClick={() => setCurrentSlide(currentSlide - 1)}
-                                                    className="hidden lg:block absolute left-0 top-1/2 -translate-y-1/2 -translate-x-12 z-10 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg transition"
-                                                >
-                                                    <ChevronLeft className="w-6 h-6" />
-                                                </button>
-                                            )}
-                                            
-                                            {currentSlide < suggestions.length - 1 && (
-                                                <button
-                                                    onClick={() => setCurrentSlide(currentSlide + 1)}
-                                                    className="hidden lg:block absolute right-0 top-1/2 -translate-y-1/2 translate-x-12 z-10 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg transition"
-                                                >
-                                                    <ChevronRight className="w-6 h-6" />
-                                                </button>
-                                            )}
-
-                                            {/* Carousel with peek */}
-                                            <div className="overflow-hidden px-4 lg:px-0">
-                                                <div 
-                                                    className="flex gap-4 transition-transform duration-500 ease-out"
-                                                    style={{ 
-                                                        transform: `translateX(calc(-${currentSlide * 100}% - ${currentSlide * 16}px))` 
-                                                    }}
-                                                    onTouchStart={(e) => {
-                                                        const touch = e.touches[0];
-                                                        e.currentTarget.dataset.startX = touch.clientX;
-                                                    }}
-                                                    onTouchEnd={(e) => {
-                                                        const touch = e.changedTouches[0];
-                                                        const startX = parseFloat(e.currentTarget.dataset.startX);
-                                                        const diff = startX - touch.clientX;
-                                                        
-                                                        if (Math.abs(diff) > 50) {
-                                                            if (diff > 0 && currentSlide < suggestions.length - 1) {
-                                                                setCurrentSlide(currentSlide + 1);
-                                                            } else if (diff < 0 && currentSlide > 0) {
-                                                                setCurrentSlide(currentSlide - 1);
-                                                            }
-                                                        }
-                                                    }}
-                                                >
-                                                    {/* Movie Cards */}
-                                                    {suggestions.map((movie, index) => (
-                                                        <div 
-                                                            key={index} 
-                                                            className="flex-shrink-0"
-                                                            style={{ width: 'calc(100% - 60px)' }}
-                                                        >
-                                                            <MovieCard movieTitle={movie} compact={true} />
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            </div>
-
-                                            {/* Dots Indicator */}
-                                            <div className="flex justify-center gap-2 mt-6">
-                                                {suggestions.map((_, index) => (
-                                                    <button
-                                                        key={index}
-                                                        onClick={() => setCurrentSlide(index)}
-                                                        className={`h-2 rounded-full transition-all ${
-                                                            currentSlide === index ? 'bg-pink-500 w-8' : 'bg-gray-600 w-2'
-                                                        }`}
-                                                    />
-                                                ))}
-                                            </div>
-                                        </div>
-                                    </>
-                                )}
-                            </div>
-                        )}
-
-                        {showFullList && (
-                            <div>
-                                <div className="flex items-center gap-3 mb-6">
-                                    <button
-                                        onClick={() => {
-                                            setShowFullList(false);
-                                            setShowWatchedList(false);
-                                        }}
-                                        className="text-blue-400 hover:text-blue-300 transition flex items-center gap-2"
-                                    >
-                                        <span className="text-2xl">←</span>
-                                        <span className="text-sm">Back to recommendations</span>
-                                    </button>
-                                </div>
-                                <h3 className="text-2xl font-semibold mb-6">
-                                    Movies to watch ({watchlist.filter(m => !watchedMovies.includes(m)).length})
-                                </h3>
-                                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                                    {watchlist
-                                        .filter(m => !watchedMovies.includes(m))
-                                        .sort()
-                                        .map((movie, index) => (
-                                            <div key={index} onClick={() => openMovieDetails(movie)} className="cursor-pointer">
-                                                <MovieCard movieTitle={movie} compact={true} />
-                                            </div>
-                                        ))}
-                                </div>
-                            </div>
-                        )}
-
-                        {showWatchedList && (
-                            <div>
-                                <div className="flex items-center gap-3 mb-6">
-                                    <button
-                                        onClick={() => {
-                                            setShowFullList(false);
-                                            setShowWatchedList(false);
-                                        }}
-                                        className="text-blue-400 hover:text-blue-300 transition flex items-center gap-2"
-                                    >
-                                        <span className="text-2xl">←</span>
-                                        <span className="text-sm">Back to recommendations</span>
-                                    </button>
-                                </div>
-                                <h3 className="text-2xl font-semibold mb-6">
-                                    Watched movies ({watchedMovies.length})
-                                </h3>
-                                {watchedMovies.length === 0 ? (
-                                    <div className="text-center py-12 text-gray-400">
-                                        <p>You haven't marked any movies as watched yet.</p>
                                     </div>
-                                ) : (
-                                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                                        {watchedMovies
-                                            .sort()
-                                            .map((movie, index) => (
-                                                <div key={index} onClick={() => openMovieDetails(movie)} className="cursor-pointer">
-                                                    <MovieCard movieTitle={movie} compact={true} />
-                                                </div>
-                                            ))}
-                                    </div>
-                                )}
-                            </div>
+                                    <div className="flex justify-center gap-2 mt-6">{state.suggestions.map((_,i) => <button key={i} onClick={() => setState(s=>({...s,slide:i}))} className={`h-2 rounded-full transition-all ${state.slide===i?'bg-pink-500 w-8':'bg-gray-600 w-2'}`}/>)}</div>
+                                </div>
+                            </>
                         )}
                     </div>
 
-                    {selectedTrailer && (
+                    {state.trailer && (
                         <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 p-4">
                             <div className="relative w-full max-w-4xl">
-                                <button
-                                    onClick={closeTrailer}
-                                    className="absolute -top-12 right-0 text-white hover:text-gray-300 transition"
-                                >
-                                    <X className="w-8 h-8" />
-                                </button>
-                                <div className="relative pt-[56.25%]">
-                                    <iframe
-                                        className="absolute inset-0 w-full h-full"
-                                        src={`https://www.youtube.com/embed/${selectedTrailer}`}
-                                        title="Movie Trailer"
-                                        frameBorder="0"
-                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                        allowFullScreen
-                                    ></iframe>
-                                </div>
+                                <button onClick={() => setState(s=>({...s,trailer:null}))} className="absolute -top-12 right-0 text-white hover:text-gray-300 transition"><X className="w-8 h-8"/></button>
+                                <div className="relative pt-[56.25%]"><iframe className="absolute inset-0 w-full h-full" src={`https://www.youtube.com/embed/${state.trailer}`} title="Trailer" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen></iframe></div>
                             </div>
                         </div>
                     )}
 
-                    {selectedMovie && (
+                    {state.selected && (
                         <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 p-4 overflow-y-auto">
                             <div className="relative w-full max-w-5xl my-8">
-                                <button
-                                    onClick={closeMovieDetails}
-                                    className="absolute -top-12 right-0 text-white hover:text-gray-300 transition z-10"
-                                >
-                                    <X className="w-8 h-8" />
-                                </button>
-                                <div className="bg-gray-800 rounded-lg overflow-hidden shadow-2xl">
-                                    <MovieCard movieTitle={selectedMovie} compact={false} />
-                                </div>
+                                <button onClick={() => setState(s=>({...s,selected:null}))} className="absolute -top-12 right-0 text-white hover:text-gray-300 transition z-10"><X className="w-8 h-8"/></button>
+                                <div className="bg-gray-800 rounded-lg overflow-hidden shadow-2xl"><Card m={state.selected} compact={false}/></div>
                             </div>
                         </div>
                     )}
