@@ -138,6 +138,7 @@
             const [watchedMovies, setWatchedMovies] = useState([]);
             const [selectedMovie, setSelectedMovie] = useState(null);
             const [currentSlide, setCurrentSlide] = useState(0);
+            const [loadingMessage, setLoadingMessage] = useState('reading the tea leaves...');
 
             const watchlist = [
                 "Scarface", "Boogie Nights", "Fargo", "Raising Arizona", "Norma Rae",
@@ -155,6 +156,21 @@
 
             useEffect(() => {
                 fetchAllMovieDetails();
+                
+                // Cycle through loading messages
+                const messages = [
+                    'reading the tea leaves...',
+                    'checking weather...',
+                    'identifying mood...',
+                    'finding movies...'
+                ];
+                let index = 0;
+                const interval = setInterval(() => {
+                    index = (index + 1) % messages.length;
+                    setLoadingMessage(messages[index]);
+                }, 2000);
+                
+                return () => clearInterval(interval);
             }, []);
 
             const fetchAllMovieDetails = async () => {
@@ -199,12 +215,20 @@
 
                                 const trailer = videosData.results?.find(v => v.type === 'Trailer' && v.site === 'YouTube');
                                 const topActors = creditsData.cast?.slice(0, 5).map(actor => actor.name) || [];
+                                
+                                // Get crew members
+                                const director = creditsData.crew?.find(person => person.job === 'Director')?.name;
+                                const editor = creditsData.crew?.find(person => person.job === 'Editor')?.name;
+                                const cinematographer = creditsData.crew?.find(person => person.job === 'Director of Photography')?.name;
 
                                 details[movie] = {
                                     ...movieDetails,
                                     actors: topActors,
                                     trailer: trailer?.key,
-                                    release_dates: releaseDatesData
+                                    release_dates: releaseDatesData,
+                                    director,
+                                    editor,
+                                    cinematographer
                                 };
                             }
                         } catch (error) {
@@ -366,11 +390,24 @@
                                     )}
 
                                     {details.actors && details.actors.length > 0 && (
-                                        <div className="mb-4">
+                                        <div className="mb-3">
                                             <p className="text-xs lg:text-sm text-gray-400 mb-1">Starring:</p>
                                             <p className="text-xs lg:text-sm">{details.actors.join(', ')}</p>
                                         </div>
                                     )}
+
+                                    {/* Crew Information */}
+                                    <div className="mb-4 space-y-1">
+                                        {details.director && (
+                                            <p className="text-xs lg:text-sm"><span className="text-gray-400">Director:</span> {details.director}</p>
+                                        )}
+                                        {details.cinematographer && (
+                                            <p className="text-xs lg:text-sm"><span className="text-gray-400">Cinematographer:</span> {details.cinematographer}</p>
+                                        )}
+                                        {details.editor && (
+                                            <p className="text-xs lg:text-sm"><span className="text-gray-400">Editor:</span> {details.editor}</p>
+                                        )}
+                                    </div>
 
                                     <div className="flex flex-wrap gap-2 lg:gap-3 mt-4">
                                         {details.trailer && (
@@ -379,10 +416,10 @@
                                                     e.stopPropagation();
                                                     openTrailer(details.trailer);
                                                 }}
-                                                className="flex items-center gap-2 bg-red-600 hover:bg-red-700 px-3 py-2 lg:px-4 lg:py-2 rounded-lg transition text-sm"
+                                                className="flex items-center gap-2 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white px-4 py-2.5 rounded-full transition shadow-lg font-medium text-sm"
                                             >
                                                 <Play className="w-4 h-4" />
-                                                Watch Trailer
+                                                Watch trailer
                                             </button>
                                         )}
 
@@ -392,9 +429,9 @@
                                                     e.stopPropagation();
                                                     markAsWatched(movieTitle);
                                                 }}
-                                                className="flex items-center gap-2 bg-green-600 hover:bg-green-700 px-3 py-2 lg:px-4 lg:py-2 rounded-lg transition text-sm"
+                                                className="flex items-center gap-2 border-2 border-gray-600 text-gray-300 hover:border-gray-500 hover:text-white px-4 py-2 rounded-full transition font-medium text-sm"
                                             >
-                                                ✓ Mark as Watched
+                                                ✓ Mark as watched
                                             </button>
                                         ) : (
                                             <button
@@ -402,9 +439,9 @@
                                                     e.stopPropagation();
                                                     markAsUnwatched(movieTitle);
                                                 }}
-                                                className="flex items-center gap-2 bg-gray-600 hover:bg-gray-700 px-3 py-2 lg:px-4 lg:py-2 rounded-lg transition text-sm"
+                                                className="flex items-center gap-2 border-2 border-gray-600 text-gray-300 hover:border-gray-500 hover:text-white px-4 py-2 rounded-full transition font-medium text-sm"
                                             >
-                                                ↺ Mark as Unwatched
+                                                ↺ Mark as unwatched
                                             </button>
                                         )}
                                     </div>
@@ -603,8 +640,7 @@
                                 <div className="w-32 h-48 bg-gray-800 rounded-lg card-shuffle-3"></div>
                             </div>
                             <Film className="w-16 h-16 text-blue-400 animate-pulse mx-auto mb-4" />
-                            <p className="text-xl">Loading your movies...</p>
-                            <p className="text-sm text-gray-400 mt-2">This may take 10-15 seconds</p>
+                            <p className="text-xl">{loadingMessage}</p>
                         </div>
                     </div>
                 );
@@ -657,13 +693,24 @@
                                         <p className="text-gray-400 mb-6">Congratulations! You've completed your entire watchlist.</p>
                                         <button
                                             onClick={() => setShowWatchedList(true)}
-                                            className="bg-green-600 hover:bg-green-700 px-6 py-3 rounded-lg transition"
+                                            className="bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white px-6 py-3 rounded-full transition shadow-lg font-medium"
                                         >
-                                            View Watched Movies
+                                            View watched movies
                                         </button>
                                     </div>
                                 ) : (
                                     <>
+                                        {/* Refresh Button */}
+                                        <div className="flex justify-center mb-4">
+                                            <button
+                                                onClick={getNewSuggestions}
+                                                className="flex items-center gap-2 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white px-6 py-3 rounded-full transition shadow-lg font-medium text-sm"
+                                            >
+                                                <Shuffle className="w-4 h-4" />
+                                                Get new recommendations
+                                            </button>
+                                        </div>
+
                                         {/* Carousel Container */}
                                         <div className="relative max-w-5xl mx-auto">
                                             {/* Navigation Arrows - Hidden on mobile */}
@@ -676,7 +723,7 @@
                                                 </button>
                                             )}
                                             
-                                            {currentSlide < suggestions.length && (
+                                            {currentSlide < suggestions.length - 1 && (
                                                 <button
                                                     onClick={() => setCurrentSlide(currentSlide + 1)}
                                                     className="hidden lg:block absolute right-0 top-1/2 -translate-y-1/2 translate-x-16 z-10 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg transition"
@@ -686,51 +733,31 @@
                                             )}
 
                                             {/* Carousel */}
-                                            <div 
-                                                className="overflow-x-auto overflow-y-hidden carousel-container snap-x snap-mandatory"
-                                                onScroll={(e) => {
-                                                    const scrollLeft = e.target.scrollLeft;
-                                                    const width = e.target.offsetWidth;
-                                                    const newSlide = Math.round(scrollLeft / width);
-                                                    setCurrentSlide(newSlide);
-                                                }}
-                                            >
+                                            <div className="overflow-hidden">
                                                 <div 
-                                                    className="flex transition-transform duration-500 ease-out lg:transition-transform"
+                                                    className="flex transition-transform duration-500 ease-out"
                                                     style={{ transform: `translateX(-${currentSlide * 100}%)` }}
                                                 >
                                                     {/* Movie Cards */}
                                                     {suggestions.map((movie, index) => (
                                                         <div 
                                                             key={index} 
-                                                            className="carousel-item w-full flex-shrink-0 px-1 lg:px-2 snap-center"
+                                                            className="carousel-item w-full flex-shrink-0"
                                                         >
                                                             <MovieCard movieTitle={movie} showFullDetails={true} />
                                                         </div>
                                                     ))}
-                                                    
-                                                    {/* Shuffle Card */}
-                                                    <div className="carousel-item w-full flex-shrink-0 px-1 lg:px-2 snap-center">
-                                                        <div 
-                                                            onClick={getNewSuggestions}
-                                                            className="bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg shadow-xl hover:shadow-2xl transition cursor-pointer flex flex-col items-center justify-center p-8 lg:p-12 min-h-[70vh] lg:h-[80vh]"
-                                                        >
-                                                            <Shuffle className="w-16 h-16 lg:w-24 lg:h-24 text-white mb-6 lg:mb-8" />
-                                                            <h3 className="text-2xl lg:text-3xl font-bold text-white text-center mb-3 lg:mb-4">Get New Recommendations</h3>
-                                                            <p className="text-blue-100 text-center text-base lg:text-lg">Tap to shuffle and see 3 new movies</p>
-                                                        </div>
-                                                    </div>
                                                 </div>
                                             </div>
 
                                             {/* Dots Indicator */}
                                             <div className="flex justify-center gap-2 mt-6">
-                                                {[...suggestions, 'shuffle'].map((_, index) => (
+                                                {suggestions.map((_, index) => (
                                                     <button
                                                         key={index}
                                                         onClick={() => setCurrentSlide(index)}
-                                                        className={`w-2 h-2 rounded-full transition ${
-                                                            currentSlide === index ? 'bg-blue-500 w-8' : 'bg-gray-600'
+                                                        className={`h-2 rounded-full transition-all ${
+                                                            currentSlide === index ? 'bg-pink-500 w-8' : 'bg-gray-600 w-2'
                                                         }`}
                                                     />
                                                 ))}
@@ -739,7 +766,7 @@
                                             {/* Swipe Hint */}
                                             {currentSlide === 0 && (
                                                 <p className="text-center text-gray-400 text-sm mt-4">
-                                                    ← Swipe or use arrows to see more →
+                                                    Swipe to see more →
                                                 </p>
                                             )}
                                         </div>
@@ -759,11 +786,11 @@
                                         className="text-blue-400 hover:text-blue-300 transition flex items-center gap-2"
                                     >
                                         <span className="text-2xl">←</span>
-                                        <span className="text-sm">Back to Recommendations</span>
+                                        <span className="text-sm">Back to recommendations</span>
                                     </button>
                                 </div>
                                 <h3 className="text-2xl font-semibold mb-6">
-                                    Movies To Watch ({watchlist.filter(m => !watchedMovies.includes(m)).length})
+                                    Movies to watch ({watchlist.filter(m => !watchedMovies.includes(m)).length})
                                 </h3>
                                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
                                     {watchlist
@@ -789,11 +816,11 @@
                                         className="text-blue-400 hover:text-blue-300 transition flex items-center gap-2"
                                     >
                                         <span className="text-2xl">←</span>
-                                        <span className="text-sm">Back to Recommendations</span>
+                                        <span className="text-sm">Back to recommendations</span>
                                     </button>
                                 </div>
                                 <h3 className="text-2xl font-semibold mb-6">
-                                    Watched Movies ({watchedMovies.length})
+                                    Watched movies ({watchedMovies.length})
                                 </h3>
                                 {watchedMovies.length === 0 ? (
                                     <div className="text-center py-12 text-gray-400">
