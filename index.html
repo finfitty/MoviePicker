@@ -8,8 +8,26 @@
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        // Suppress Tailwind CDN warning
+        tailwind.config = {
+            corePlugins: {
+                preflight: true,
+            }
+        }
+    </script>
     <style>
-        @keyframes cardShuffle { 0%, 100% { transform: translateX(0); opacity: 1; } 50% { transform: translateX(20px); opacity: 0.7; } }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in {
+            animation: fadeIn 0.8s ease-out forwards;
+        }
+        @keyframes cardShuffle {
+            0%, 100% { transform: translateX(0) rotate(0deg); opacity: 1; }
+            50% { transform: translateX(20px) rotate(2deg); opacity: 0.7; }
+        }
         .card-shuffle-1 { animation: cardShuffle 1.5s ease-in-out infinite; }
         .card-shuffle-2 { animation: cardShuffle 1.5s ease-in-out infinite; animation-delay: 0.2s; }
         .card-shuffle-3 { animation: cardShuffle 1.5s ease-in-out infinite; animation-delay: 0.4s; }
@@ -21,141 +39,486 @@
         const { useState, useEffect } = React;
         const TOKEN = 'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI4NDZkYmQ3NzY5MmE3MDY3NGNlMTBhMWM2YjRkNjY2YyIsIm5iZiI6MTc2MzQyMzc5MS4wMDg5OTk4LCJzdWIiOiI2OTFiYjYyZmMzMjkxYzk2ODdjN2QyYTQiLCJzY29wZXMiOlsiYXBpX3JlYWQiXSwidmVyc2lvbiI6MX0.yceVQdz0-IeMdfCDLlmerZZZ9X95mX_5MUEuTHEKnXM';
         
-        const Film = ({className}) => <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="2" width="20" height="20" rx="2"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/></svg>;
+        // Icons
+        const Film = ({className}) => <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="2" width="20" height="20" rx="2"/><path d="M7 2v20M17 2v20M2 12h20"/><line x1="2" y1="7" x2="7" y2="7"/><line x1="2" y1="17" x2="7" y2="17"/><line x1="17" y1="7" x2="22" y2="7"/><line x1="17" y1="17" x2="22" y2="17"/></svg>;
         const X = ({className}) => <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>;
         const Play = ({className}) => <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>;
         const Star = ({className}) => <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>;
         const Clock = ({className}) => <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>;
         const ChevronLeft = ({className}) => <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="15 18 9 12 15 6"/></svg>;
         const ChevronRight = ({className}) => <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>;
-        const RefreshCw = ({className}) => <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="23 4 23 10 17 10"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>;
+        const RefreshCw = ({className}) => <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>;
+        const Heart = ({className}) => <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>;
+        const Award = ({className}) => <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>;
+        const Eye = ({className}) => <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>;
 
         function MoviePicker() {
             const [state, setState] = useState({
-                suggestions: [], details: {}, loading: true, loadingMsg: 'reading the tea leaves...', 
-                trailer: null, watched: [], selected: null, slide: 0, filter: 'all',
-                myPicks: ["Scarface","Boogie Nights","Fargo","Raising Arizona","Norma Rae","My Life as a Dog","A River Runs Through It","Erin Brockovich","What's Eating Gilbert Grape","American Graffiti","Chinatown","One Flew Over the Cuckoo's Nest","Taxi Driver","Juno","Chariots of Fire","Psycho","Fried Green Tomatoes","Brokeback Mountain","Walk the Line"]
+                page: 'home',
+                homeFilter: 'all',
+                oscarFilter: 'all',
+                suggestions: [],
+                details: {},
+                loading: true,
+                loadingMsg: 'reading the tea leaves',
+                trailer: null,
+                watched: [],
+                watchedDates: {},
+                selected: null,
+                backTo: null,
+                carouselIndex: 0,
+                wishlist: ["Scarface","Boogie Nights","Fargo","Raising Arizona","Norma Rae","My Life as a Dog","A River Runs Through It","Erin Brockovich","What's Eating Gilbert Grape","American Graffiti","Chinatown","One Flew Over the Cuckoo's Nest","Taxi Driver","Juno","Chariots of Fire","Psycho","Fried Green Tomatoes","Brokeback Mountain","Walk the Line"]
             });
 
-            // Oscar data - abbreviated for space
+            // Oscar data
             const bestPicture = ["Wings","All Quiet on the Western Front","Grand Hotel","It Happened One Night","Mutiny on the Bounty","Gone with the Wind","Rebecca","Casablanca","The Best Years of Our Lives","All About Eve","From Here to Eternity","On the Waterfront","The Bridge on the River Kwai","Ben-Hur","The Apartment","West Side Story","Lawrence of Arabia","My Fair Lady","The Sound of Music","In the Heat of the Night","Midnight Cowboy","Patton","The French Connection","The Godfather","The Sting","The Godfather Part II","One Flew Over the Cuckoo's Nest","Rocky","Annie Hall","The Deer Hunter","Kramer vs. Kramer","Ordinary People","Chariots of Fire","Gandhi","Terms of Endearment","Amadeus","Out of Africa","Platoon","The Last Emperor","Rain Man","Driving Miss Daisy","Dances with Wolves","The Silence of the Lambs","Unforgiven","Schindler's List","Forrest Gump","Braveheart","The English Patient","Titanic","Shakespeare in Love","American Beauty","Gladiator","A Beautiful Mind","Chicago","The Lord of the Rings: The Return of the King","Million Dollar Baby","Crash","The Departed","No Country for Old Men","Slumdog Millionaire","The Hurt Locker","The King's Speech","The Artist","Argo","12 Years a Slave","Birdman","Spotlight","Moonlight","The Shape of Water","Green Book","Parasite","Nomadland","CODA","Everything Everywhere All at Once","Oppenheimer"];
-            const otherWinners = ["Traffic","Training Day","Monster's Ball","The Pianist","Mystic River","The Aviator","Capote","The Queen","There Will Be Blood","Milk","Precious","The Fighter","The Iron Lady","Silver Linings Playbook","Dallas Buyers Club","Whiplash","Still Alice","The Revenant","Manchester by the Sea","Three Billboards Outside Ebbing, Missouri","Bohemian Rhapsody","Judy","Joker","The Father","King Richard","The Whale","Tár","Poor Things"];
+            
+            const bestActorActress = ["Traffic","Training Day","Monster's Ball","The Pianist","Mystic River","The Aviator","Capote","The Queen","There Will Be Blood","Milk","Precious","The Fighter","The Iron Lady","Silver Linings Playbook","Dallas Buyers Club","Whiplash","Still Alice","The Revenant","Manchester by the Sea","Three Billboards Outside Ebbing, Missouri","Bohemian Rhapsody","Judy","Joker","The Father","King Richard","The Whale","Tár","Poor Things"];
+            
             const foreign = ["Cinema Paradiso","Life Is Beautiful","All About My Mother","Crouching Tiger, Hidden Dragon","Nowhere in Africa","The Barbarian Invasions","The Sea Inside","The Lives of Others","Departures","The Secret in Their Eyes","A Separation","Amour","The Great Beauty","Ida","Son of Saul","The Salesman","A Fantastic Woman","Roma","Parasite","Another Round","Drive My Car","All Quiet on the Western Front","The Zone of Interest"];
+            
             const runnerUps = ["Fargo","L.A. Confidential","Saving Private Ryan","The Sixth Sense","Crouching Tiger, Hidden Dragon","Erin Brockovich","The Lord of the Rings: The Fellowship of the Ring","The Pianist","Brokeback Mountain","Juno","There Will Be Blood","Avatar","Inception","The Social Network","Lincoln","Her","The Grand Budapest Hotel","Mad Max: Fury Road","La La Land","Get Out","Roma","Joker","1917","Dune","The Fabelmans","Barbie","Killers of the Flower Moon","Poor Things"];
 
-            const allMovies = [...new Set([...state.myPicks, ...bestPicture, ...otherWinners, ...foreign, ...runnerUps])];
+            const allMovies = [...new Set([...state.wishlist, ...bestPicture, ...bestActorActress, ...foreign, ...runnerUps])];
 
-            const getCats = (m) => {
-                const c = [];
-                if (state.myPicks.includes(m)) c.push({label:'My Picks',color:'bg-purple-600'});
-                if (bestPicture.includes(m) || otherWinners.includes(m) || foreign.includes(m)) c.push({label:'Winner',color:'bg-yellow-600'});
-                if (runnerUps.includes(m)) c.push({label:'Runner-up',color:'bg-blue-600'});
-                return c;
+            const getCategories = (movie) => {
+                const cats = [];
+                if (state.wishlist.includes(movie)) cats.push({label:'Wish list', color:'bg-purple-600'});
+                if (bestPicture.includes(movie)) cats.push({label:'Best Picture', color:'bg-yellow-500'});
+                if (bestActorActress.includes(movie) && !bestPicture.includes(movie)) cats.push({label:'Best Actor/Actress', color:'bg-yellow-600'});
+                if (foreign.includes(movie)) cats.push({label:'Foreign Language', color:'bg-green-600'});
+                if (runnerUps.includes(movie)) cats.push({label:'Runner-up', color:'bg-blue-600'});
+                return cats;
             };
 
-            const getFiltered = () => {
-                if (state.filter === 'all') return allMovies;
-                if (state.filter === 'my-picks') return allMovies.filter(m => state.myPicks.includes(m));
-                if (state.filter === 'winners') return allMovies.filter(m => bestPicture.includes(m) || otherWinners.includes(m) || foreign.includes(m));
-                if (state.filter === 'runner-ups') return allMovies.filter(m => runnerUps.includes(m));
-                return allMovies;
+            const getAwardsText = (movie) => {
+                const awards = [];
+                if (bestPicture.includes(movie)) awards.push('Best Picture');
+                if (bestActorActress.includes(movie) && !bestPicture.includes(movie)) awards.push('Best Actor/Actress');
+                if (foreign.includes(movie)) awards.push('Foreign Language Film');
+                if (runnerUps.includes(movie)) awards.push('Nominated');
+                return awards.join(', ');
+            };
+
+            const isInOscarMovies = (movie) => {
+                return bestPicture.includes(movie) || bestActorActress.includes(movie) || 
+                       foreign.includes(movie) || runnerUps.includes(movie);
+            };
+
+            const getUnwatchedMovies = () => {
+                return allMovies.filter(m => !state.watched.includes(m));
+            };
+
+            const getSuggestionPool = () => {
+                const unwatched = getUnwatchedMovies();
+                if (state.homeFilter === 'all') return unwatched;
+                if (state.homeFilter === 'wishlist') return unwatched.filter(m => state.wishlist.includes(m));
+                if (state.homeFilter === 'oscar') return unwatched.filter(m => isInOscarMovies(m));
+                return unwatched;
+            };
+
+            const getOscarMovies = () => {
+                if (state.oscarFilter === 'all') return allMovies.filter(m => isInOscarMovies(m));
+                if (state.oscarFilter === 'best-picture') return bestPicture;
+                if (state.oscarFilter === 'best-actor') return bestActorActress;
+                if (state.oscarFilter === 'foreign') return foreign;
+                if (state.oscarFilter === 'runner-up') return runnerUps;
+                return [];
             };
 
             useEffect(() => {
                 fetchData();
-                const msgs = ['reading the tea leaves...','checking weather...','identifying mood...','finding movies...'];
+                const msgs = ['reading the tea leaves','checking the weather','identifying your mood','finding perfect movies'];
                 let i = 0;
-                const int = setInterval(() => {
+                const interval = setInterval(() => {
                     i = (i + 1) % msgs.length;
                     setState(s => ({...s, loadingMsg: msgs[i]}));
-                }, 2000);
-                return () => clearInterval(int);
+                }, 2500);
+                return () => clearInterval(interval);
             }, []);
 
             const fetchData = async () => {
-                const d = {};
+                const details = {};
                 const opts = {headers: {accept: 'application/json', Authorization: `Bearer ${TOKEN}`}};
-                for (let i = 0; i < allMovies.length; i += 5) {
-                    await Promise.all(allMovies.slice(i, i+5).map(async (m) => {
-                        try {
-                            const sr = await fetch(`https://api.themoviedb.org/3/search/movie?query=${encodeURIComponent(m)}&include_adult=false`, opts);
-                            const sd = await sr.json();
-                            if (sd.results?.length > 0) {
-                                const id = sd.results[0].id;
-                                const [dr, cr, vr, wr] = await Promise.all([
-                                    fetch(`https://api.themoviedb.org/3/movie/${id}`, opts),
-                                    fetch(`https://api.themoviedb.org/3/movie/${id}/credits`, opts),
-                                    fetch(`https://api.themoviedb.org/3/movie/${id}/videos`, opts),
-                                    fetch(`https://api.themoviedb.org/3/movie/${id}/watch/providers`, opts)
-                                ]);
-                                const md = await dr.json();
-                                const cd = await cr.json();
-                                const vd = await vr.json();
-                                const wd = await wr.json();
-                                d[m] = {...md, actors: cd.cast?.slice(0,5).map(a=>a.name)||[], trailer: vd.results?.find(v=>v.type==='Trailer'&&v.site==='YouTube')?.key, director: cd.crew?.find(p=>p.job==='Director')?.name, providers: wd.results?.US};
-                            }
-                        } catch(e) {}
-                    }));
-                }
-                setState(s => ({...s, details: d, loading: false}));
-                newSuggestions();
-            };
-
-            const newSuggestions = () => {
-                const f = getFiltered().filter(m => !state.watched.includes(m));
-                if (f.length === 0) { setState(s => ({...s, suggestions: []})); return; }
-                const sh = [...f].sort(() => Math.random() - 0.5);
-                setState(s => ({...s, suggestions: sh.slice(0,3), slide: 0}));
-            };
-
-            const Card = ({m, compact}) => {
-                const d = state.details[m];
-                const cats = getCats(m);
-                if (!d) return <div className="bg-gray-800 rounded-lg p-6"><p className="text-gray-300">Loading...</p></div>;
                 
-                if (!compact) {
+                try {
+                    for (let i = 0; i < allMovies.length; i += 5) {
+                        await Promise.all(allMovies.slice(i, i+5).map(async (movie) => {
+                            try {
+                                const searchRes = await fetch(`https://api.themoviedb.org/3/search/movie?query=${encodeURIComponent(movie)}&include_adult=false`, opts);
+                                const searchData = await searchRes.json();
+                                
+                                if (searchData.results?.length > 0) {
+                                    const id = searchData.results[0].id;
+                                    const [detailRes, creditRes, videoRes, watchRes] = await Promise.all([
+                                        fetch(`https://api.themoviedb.org/3/movie/${id}`, opts),
+                                        fetch(`https://api.themoviedb.org/3/movie/${id}/credits`, opts),
+                                        fetch(`https://api.themoviedb.org/3/movie/${id}/videos`, opts),
+                                        fetch(`https://api.themoviedb.org/3/movie/${id}/watch/providers`, opts)
+                                    ]);
+                                    
+                                    const movieData = await detailRes.json();
+                                    const creditData = await creditRes.json();
+                                    const videoData = await videoRes.json();
+                                    const watchData = await watchRes.json();
+                                    
+                                    details[movie] = {
+                                        ...movieData,
+                                        actors: creditData.cast?.slice(0, 5).map(a => a.name) || [],
+                                        trailer: videoData.results?.find(v => v.type === 'Trailer' && v.site === 'YouTube')?.key,
+                                        director: creditData.crew?.find(p => p.job === 'Director')?.name,
+                                        providers: watchData.results?.US
+                                    };
+                                }
+                            } catch (e) {
+                                console.error(`Error fetching ${movie}:`, e);
+                            }
+                        }));
+                    }
+                    
+                    setState(s => ({...s, details, loading: false}));
+                    setTimeout(() => generateSuggestions(), 100);
+                } catch (error) {
+                    console.error('Error in fetchData:', error);
+                    setState(s => ({...s, loading: false}));
+                }
+            };
+
+            const generateSuggestions = () => {
+                const pool = getSuggestionPool();
+                if (pool.length === 0) {
+                    setState(s => ({...s, suggestions: [], carouselIndex: 0}));
+                    return;
+                }
+                const shuffled = [...pool].sort(() => Math.random() - 0.5);
+                setState(s => ({...s, suggestions: shuffled.slice(0, 3), carouselIndex: 0}));
+            };
+
+            const markAsWatched = (movie) => {
+                setState(s => ({
+                    ...s,
+                    watched: [...s.watched, movie],
+                    watchedDates: {...s.watchedDates, [movie]: new Date().toISOString()}
+                }));
+            };
+
+            const unmarkAsWatched = (movie) => {
+                setState(s => ({
+                    ...s,
+                    watched: s.watched.filter(m => m !== movie),
+                    watchedDates: Object.fromEntries(Object.entries(s.watchedDates).filter(([k]) => k !== movie))
+                }));
+            };
+
+            const openDetail = (movie, backTo = null) => {
+                setState(s => ({...s, selected: movie, backTo}));
+            };
+
+            const closeDetail = () => {
+                setState(s => ({...s, selected: null, backTo: null}));
+            };
+
+            const TallCard = ({movie, onClick}) => {
+                const detail = state.details[movie];
+                const cats = getCategories(movie);
+                const awards = getAwardsText(movie);
+                
+                if (!detail) {
                     return (
-                        <div className="bg-gray-800 rounded-lg overflow-hidden shadow-xl">
-                            <div className="flex flex-col md:flex-row max-h-[80vh]">
-                                <div className="md:w-1/3 flex-shrink-0">
-                                    {d.poster_path ? <img src={`https://image.tmdb.org/t/p/w500${d.poster_path}`} alt={m} className="w-full h-full object-cover"/> : <div className="w-full h-64 md:h-full bg-gray-700 flex items-center justify-center"><Film className="w-16 h-16 text-gray-500"/></div>}
-                                </div>
-                                <div className="p-6 flex-1 overflow-y-auto">
-                                    <h3 className="text-2xl font-bold mb-3">{d.title}</h3>
-                                    {cats.length > 0 && <div className="flex flex-wrap gap-2 mb-3">{cats.map((c,i) => <span key={i} className={`${c.color} text-white px-3 py-1 rounded-full text-xs font-semibold`}>{c.label}</span>)}</div>}
-                                    <div className="flex flex-wrap gap-4 mb-4 text-sm">
-                                        {d.vote_average > 0 && <div className="flex items-center gap-1"><Star className="w-4 h-4 text-yellow-400 fill-yellow-400"/><span className="font-semibold">{d.vote_average.toFixed(1)}</span><span className="text-gray-400">/10</span></div>}
-                                        {d.runtime && <div className="flex items-center gap-1"><Clock className="w-4 h-4 text-blue-400"/><span>{d.runtime} min</span></div>}
-                                    </div>
-                                    {d.overview && <p className="text-gray-300 mb-4">{d.overview}</p>}
-                                    {d.actors?.length > 0 && <div className="mb-3"><p className="text-sm"><span className="text-gray-400">Starring:</span> {d.actors.join(', ')}</p></div>}
-                                    {d.director && <div className="mb-4"><p className="text-sm"><span className="text-gray-400">Director:</span> {d.director}</p></div>}
-                                    {d.providers && <div className="mb-4"><p className="text-sm text-gray-400 mb-2">Where to watch:</p><div className="flex flex-wrap gap-2">{d.providers.flatrate?.map((p,i) => <span key={i} className="text-xs bg-gray-700 px-2 py-1 rounded">{p.provider_name}</span>)}{!d.providers.flatrate?.length && d.providers.rent?.slice(0,3).map((p,i) => <span key={i} className="text-xs bg-gray-700 px-2 py-1 rounded">Rent: {p.provider_name}</span>)}{!d.providers.flatrate?.length && !d.providers.rent?.length && <span className="text-xs text-gray-500">Not available</span>}</div></div>}
-                                    <div className="flex flex-wrap gap-3">
-                                        {d.trailer && <button onClick={() => setState(s=>({...s,trailer:d.trailer}))} className="flex items-center gap-2 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white px-4 py-2.5 rounded-full transition shadow-lg font-medium text-sm"><Play className="w-4 h-4"/>Watch trailer</button>}
-                                        {!state.watched.includes(m) ? <button onClick={() => setState(s=>({...s,watched:[...s.watched,m]}))} className="flex items-center gap-2 border-2 border-gray-600 text-gray-300 hover:border-gray-500 hover:text-white px-4 py-2 rounded-full transition font-medium text-sm">Mark as watched</button> : <button onClick={() => setState(s=>({...s,watched:s.watched.filter(w=>w!==m)}))} className="flex items-center gap-2 border-2 border-gray-600 text-gray-300 hover:border-gray-500 hover:text-white px-4 py-2 rounded-full transition font-medium text-sm">Mark as unwatched</button>}
-                                        {!state.myPicks.includes(m) && <button onClick={() => setState(s=>({...s,myPicks:[...s.myPicks,m]}))} className="flex items-center gap-2 border-2 border-purple-600 text-purple-400 hover:bg-purple-600 hover:text-white px-4 py-2 rounded-full transition font-medium text-sm">Add to my picks</button>}
-                                    </div>
-                                </div>
-                            </div>
+                        <div className="bg-gray-800 rounded-lg overflow-hidden shadow-xl flex items-center justify-center" style={{height: '66vh'}}>
+                            <p className="text-gray-400">Loading movie data...</p>
                         </div>
                     );
                 }
-                
+
+                const visibleCats = cats.slice(0, 2);
+                const moreCats = cats.length > 2 ? cats.length - 2 : 0;
+
                 return (
-                    <div onClick={() => setState(s=>({...s,selected:m}))} className="bg-gray-800 rounded-lg overflow-hidden shadow-xl hover:shadow-2xl transition hover:scale-105 cursor-pointer" style={{height:'420px'}}>
+                    <div onClick={onClick} className="bg-gray-800 rounded-lg overflow-hidden shadow-xl hover:shadow-2xl transition-all hover:scale-[1.02] cursor-pointer" style={{height: '66vh'}}>
+                        <div className="relative h-3/4">
+                            {detail.poster_path ? (
+                                <img src={`https://image.tmdb.org/t/p/w500${detail.poster_path}`} alt={movie} className="w-full h-full object-cover"/>
+                            ) : (
+                                <div className="w-full h-full bg-gray-700 flex items-center justify-center">
+                                    <Film className="w-16 h-16 text-gray-500"/>
+                                </div>
+                            )}
+                            <div className="absolute top-3 left-3 right-3 flex flex-wrap gap-1.5">
+                                {visibleCats.map((cat, i) => (
+                                    <span key={i} className={`${cat.color} text-white px-2.5 py-1 rounded-full text-xs font-semibold shadow-lg`}>
+                                        {cat.label}
+                                    </span>
+                                ))}
+                                {moreCats > 0 && (
+                                    <span className="bg-gray-900 bg-opacity-80 text-white px-2.5 py-1 rounded-full text-xs font-semibold shadow-lg">
+                                        +{moreCats} more
+                                    </span>
+                                )}
+                            </div>
+                        </div>
+                        <div className="p-4 h-1/4 flex flex-col">
+                            <h3 className="font-bold text-lg leading-tight mb-2 line-clamp-2">{detail.title}</h3>
+                            {awards && (
+                                <p className="text-xs text-yellow-400 mb-2 truncate font-medium">{awards}</p>
+                            )}
+                            <div className="flex items-center gap-3 text-xs text-gray-400 mb-2">
+                                {detail.vote_average > 0 && (
+                                    <div className="flex items-center gap-1">
+                                        <Star className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400"/>
+                                        <span className="font-medium">{detail.vote_average.toFixed(1)}</span>
+                                    </div>
+                                )}
+                                {detail.runtime && (
+                                    <div className="flex items-center gap-1">
+                                        <Clock className="w-3.5 h-3.5"/>
+                                        <span>{detail.runtime} min</span>
+                                    </div>
+                                )}
+                            </div>
+                            {detail.providers && (
+                                <div className="flex flex-wrap gap-1 text-xs">
+                                    {detail.providers.flatrate?.slice(0, 3).map((p, i) => (
+                                        <span key={i} className="bg-gray-700 px-2 py-0.5 rounded text-gray-300">
+                                            {p.provider_name}
+                                        </span>
+                                    ))}
+                                    {!detail.providers.flatrate?.length && detail.providers.rent?.slice(0, 2).map((p, i) => (
+                                        <span key={i} className="bg-gray-700 px-2 py-0.5 rounded text-gray-300">
+                                            {p.provider_name}
+                                        </span>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                );
+            };
+
+            const SmallCard = ({movie, onClick}) => {
+                const detail = state.details[movie];
+                const cats = getCategories(movie);
+                const awards = getAwardsText(movie);
+                
+                if (!detail) {
+                    return (
+                        <div className="bg-gray-800 rounded-lg overflow-hidden shadow-lg flex items-center justify-center aspect-[2/3]">
+                            <p className="text-gray-400 text-sm">Loading...</p>
+                        </div>
+                    );
+                }
+
+                const visibleCats = cats.slice(0, 2);
+                const moreCats = cats.length > 2 ? cats.length - 2 : 0;
+
+                return (
+                    <div onClick={onClick} className="bg-gray-800 rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-all hover:scale-105 cursor-pointer">
                         <div className="relative">
-                            {d.poster_path ? <img src={`https://image.tmdb.org/t/p/w300${d.poster_path}`} alt={m} className="w-full aspect-[2/3] object-cover"/> : <div className="w-full aspect-[2/3] bg-gray-700 flex items-center justify-center"><Film className="w-8 h-8 text-gray-500"/></div>}
-                            <div className="absolute top-2 left-2 flex flex-wrap gap-1">{cats.map((c,i) => <span key={i} className={`${c.color} text-white px-2 py-0.5 rounded-full text-xs font-semibold`}>{c.label}</span>)}</div>
+                            {detail.poster_path ? (
+                                <img src={`https://image.tmdb.org/t/p/w300${detail.poster_path}`} alt={movie} className="w-full aspect-[2/3] object-cover"/>
+                            ) : (
+                                <div className="w-full aspect-[2/3] bg-gray-700 flex items-center justify-center">
+                                    <Film className="w-12 h-12 text-gray-500"/>
+                                </div>
+                            )}
+                            <div className="absolute top-2 left-2 right-2 flex flex-wrap gap-1">
+                                {visibleCats.map((cat, i) => (
+                                    <span key={i} className={`${cat.color} text-white px-2 py-0.5 rounded-full text-xs font-semibold shadow-md`}>
+                                        {cat.label}
+                                    </span>
+                                ))}
+                                {moreCats > 0 && (
+                                    <span className="bg-gray-900 bg-opacity-80 text-white px-2 py-0.5 rounded-full text-xs font-semibold shadow-md">
+                                        +{moreCats}
+                                    </span>
+                                )}
+                            </div>
                         </div>
                         <div className="p-3">
-                            <h3 className="font-bold text-sm leading-tight mb-1 line-clamp-2">{d.title}</h3>
+                            <h3 className="font-bold text-sm leading-tight mb-1 line-clamp-2">{detail.title}</h3>
+                            {awards && (
+                                <p className="text-xs text-yellow-400 mb-1 truncate">{awards}</p>
+                            )}
                             <div className="flex items-center gap-2 text-xs text-gray-400 mb-1">
-                                {d.vote_average > 0 && <div className="flex items-center gap-1"><Star className="w-3 h-3 text-yellow-400 fill-yellow-400"/><span>{d.vote_average.toFixed(1)}</span></div>}
-                                {d.runtime && <span>{d.runtime} min</span>}
+                                {detail.vote_average > 0 && (
+                                    <div className="flex items-center gap-1">
+                                        <Star className="w-3 h-3 text-yellow-400 fill-yellow-400"/>
+                                        <span>{detail.vote_average.toFixed(1)}</span>
+                                    </div>
+                                )}
+                                {detail.runtime && <span>{detail.runtime} min</span>}
                             </div>
-                            {d.overview && <p className="text-xs text-gray-300 line-clamp-2 mb-1">{d.overview}</p>}
-                            {d.director && <p className="text-xs text-gray-400 truncate">Dir: {d.director}</p>}
+                            {detail.providers && (
+                                <div className="flex flex-wrap gap-1">
+                                    {detail.providers.flatrate?.slice(0, 2).map((p, i) => (
+                                        <span key={i} className="text-xs bg-gray-700 px-1.5 py-0.5 rounded text-gray-300 truncate">
+                                            {p.provider_name}
+                                        </span>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                );
+            };
+
+            const DetailModal = ({movie}) => {
+                const detail = state.details[movie];
+                const cats = getCategories(movie);
+                const awards = getAwardsText(movie);
+                const isWatched = state.watched.includes(movie);
+                
+                if (!detail) return null;
+
+                return (
+                    <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 p-4 overflow-y-auto" onClick={closeDetail}>
+                        <div className="relative w-full max-w-5xl my-8" style={{maxHeight: '85vh'}} onClick={(e) => e.stopPropagation()}>
+                            <button 
+                                onClick={closeDetail} 
+                                className="absolute -top-12 right-0 text-white hover:text-gray-300 transition z-10"
+                            >
+                                <X className="w-8 h-8"/>
+                            </button>
+                            
+                            {state.backTo && (
+                                <button 
+                                    onClick={closeDetail}
+                                    className="absolute -top-12 left-0 flex items-center gap-2 text-white hover:text-gray-300 transition z-10"
+                                >
+                                    <ChevronLeft className="w-6 h-6"/>
+                                    <span className="text-sm">Back</span>
+                                </button>
+                            )}
+
+                            <div className="bg-gray-800 rounded-lg overflow-hidden shadow-2xl" style={{maxHeight: '85vh', overflowY: 'auto'}}>
+                                <div className="flex flex-col md:flex-row">
+                                    <div className="md:w-1/3 flex-shrink-0">
+                                        {detail.poster_path ? (
+                                            <img src={`https://image.tmdb.org/t/p/w500${detail.poster_path}`} alt={movie} className="w-full h-full object-cover"/>
+                                        ) : (
+                                            <div className="w-full h-64 md:h-full bg-gray-700 flex items-center justify-center">
+                                                <Film className="w-16 h-16 text-gray-500"/>
+                                            </div>
+                                        )}
+                                    </div>
+                                    
+                                    <div className="p-6 flex-1 overflow-y-auto">
+                                        <h2 className="text-3xl font-bold mb-2">{detail.title}</h2>
+                                        
+                                        {detail.release_date && (
+                                            <p className="text-gray-400 mb-4">{new Date(detail.release_date).getFullYear()}</p>
+                                        )}
+                                        
+                                        {cats.length > 0 && (
+                                            <div className="flex flex-wrap gap-2 mb-4">
+                                                {cats.map((cat, i) => (
+                                                    <span key={i} className={`${cat.color} text-white px-3 py-1 rounded-full text-sm font-semibold`}>
+                                                        {cat.label}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        )}
+                                        
+                                        {awards && (
+                                            <div className="mb-4">
+                                                <p className="text-yellow-400 font-medium">{awards}</p>
+                                            </div>
+                                        )}
+                                        
+                                        <div className="flex flex-wrap gap-4 mb-4 text-sm">
+                                            {detail.vote_average > 0 && (
+                                                <div className="flex items-center gap-1">
+                                                    <Star className="w-5 h-5 text-yellow-400 fill-yellow-400"/>
+                                                    <span className="font-semibold text-lg">{detail.vote_average.toFixed(1)}</span>
+                                                    <span className="text-gray-400">/10</span>
+                                                </div>
+                                            )}
+                                            {detail.runtime && (
+                                                <div className="flex items-center gap-1">
+                                                    <Clock className="w-5 h-5 text-blue-400"/>
+                                                    <span>{detail.runtime} minutes</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                        
+                                        {detail.overview && (
+                                            <div className="mb-4">
+                                                <h3 className="text-lg font-semibold mb-2">Overview</h3>
+                                                <p className="text-gray-300 leading-relaxed">{detail.overview}</p>
+                                            </div>
+                                        )}
+                                        
+                                        {detail.director && (
+                                            <div className="mb-3">
+                                                <p className="text-sm">
+                                                    <span className="text-gray-400 font-medium">Director:</span> {detail.director}
+                                                </p>
+                                            </div>
+                                        )}
+                                        
+                                        {detail.actors?.length > 0 && (
+                                            <div className="mb-4">
+                                                <p className="text-sm">
+                                                    <span className="text-gray-400 font-medium">Cast:</span> {detail.actors.join(', ')}
+                                                </p>
+                                            </div>
+                                        )}
+                                        
+                                        {detail.providers && (
+                                            <div className="mb-6">
+                                                <h3 className="text-sm font-semibold text-gray-400 mb-2">Where to watch</h3>
+                                                <div className="flex flex-wrap gap-2">
+                                                    {detail.providers.flatrate?.map((p, i) => (
+                                                        <span key={i} className="text-sm bg-gray-700 px-3 py-1.5 rounded-lg text-gray-200">
+                                                            {p.provider_name}
+                                                        </span>
+                                                    ))}
+                                                    {!detail.providers.flatrate?.length && detail.providers.rent?.slice(0, 3).map((p, i) => (
+                                                        <span key={i} className="text-sm bg-gray-700 px-3 py-1.5 rounded-lg text-gray-200">
+                                                            Rent: {p.provider_name}
+                                                        </span>
+                                                    ))}
+                                                    {!detail.providers.flatrate?.length && !detail.providers.rent?.length && (
+                                                        <span className="text-sm text-gray-500">Not currently available</span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        )}
+                                        
+                                        <div className="flex flex-wrap gap-3">
+                                            {detail.trailer && (
+                                                <button 
+                                                    onClick={() => setState(s => ({...s, trailer: detail.trailer}))} 
+                                                    className="flex items-center gap-2 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white px-5 py-2.5 rounded-full transition shadow-lg font-medium"
+                                                >
+                                                    <Play className="w-5 h-5"/>
+                                                    Watch Trailer
+                                                </button>
+                                            )}
+                                            
+                                            {!isWatched ? (
+                                                <button 
+                                                    onClick={() => {
+                                                        markAsWatched(movie);
+                                                        closeDetail();
+                                                    }}
+                                                    className="flex items-center gap-2 border-2 border-green-600 text-green-400 hover:bg-green-600 hover:text-white px-5 py-2.5 rounded-full transition font-medium"
+                                                >
+                                                    <Eye className="w-5 h-5"/>
+                                                    Mark as Watched
+                                                </button>
+                                            ) : (
+                                                <button 
+                                                    onClick={() => unmarkAsWatched(movie)}
+                                                    className="flex items-center gap-2 border-2 border-gray-600 text-gray-300 hover:border-gray-500 hover:text-white px-5 py-2.5 rounded-full transition font-medium"
+                                                >
+                                                    Unmark as Watched
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 );
@@ -163,80 +526,355 @@
 
             if (state.loading) {
                 return (
-                    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900 text-white flex items-center justify-center">
+                    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 text-white flex items-center justify-center">
                         <div className="text-center">
                             <div className="flex gap-4 mb-8 justify-center">
-                                <div className="w-32 h-48 bg-gray-800 rounded-lg card-shuffle-1"></div>
-                                <div className="w-32 h-48 bg-gray-800 rounded-lg card-shuffle-2"></div>
-                                <div className="w-32 h-48 bg-gray-800 rounded-lg card-shuffle-3"></div>
+                                <div className="w-24 h-36 md:w-32 md:h-48 bg-gray-800 rounded-lg card-shuffle-1 shadow-xl"></div>
+                                <div className="w-24 h-36 md:w-32 md:h-48 bg-gray-800 rounded-lg card-shuffle-2 shadow-xl"></div>
+                                <div className="w-24 h-36 md:w-32 md:h-48 bg-gray-800 rounded-lg card-shuffle-3 shadow-xl"></div>
                             </div>
-                            <Film className="w-16 h-16 text-blue-400 animate-pulse mx-auto mb-4"/>
-                            <p className="text-xl">{state.loadingMsg}</p>
+                            <Film className="w-16 h-16 text-blue-400 mx-auto mb-6"/>
+                            <p className="text-2xl font-light fade-in">{state.loadingMsg}</p>
                         </div>
                     </div>
                 );
             }
 
             return (
-                <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900 text-white">
-                    <div className="bg-black bg-opacity-50 shadow-lg backdrop-blur sticky top-0 z-10">
-                        <div className="max-w-6xl mx-auto px-3 lg:px-4 py-3 lg:py-4">
-                            <div className="flex items-center justify-between flex-wrap gap-2">
-                                <div className="flex flex-col gap-0 cursor-pointer hover:opacity-80 transition" onClick={() => {setState(s=>({...s,filter:'all',selected:null})); newSuggestions();}}>
-                                    <div className="flex items-center gap-2"><Film className="w-5 h-5 lg:w-7 lg:h-7 text-blue-400"/><h1 className="text-lg lg:text-2xl font-bold">MoviePicker</h1></div>
-                                    <p className="text-xs lg:text-sm text-gray-400 ml-7 lg:ml-9">{state.filter==='all'?'All movies':state.filter==='my-picks'?'My picks':state.filter==='winners'?'Academy Award winners':'Best Picture runner-up'}</p>
+                <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 text-white">
+                    {/* Header */}
+                    <header className="bg-black bg-opacity-50 shadow-lg backdrop-blur sticky top-0 z-40">
+                        <div className="max-w-7xl mx-auto px-4 py-4">
+                            <div className="flex items-center justify-between">
+                                <div 
+                                    onClick={() => {
+                                        setState(s => ({...s, page: 'home', selected: null, backTo: null}));
+                                        setTimeout(generateSuggestions, 100);
+                                    }}
+                                    className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition"
+                                >
+                                    <Film className="w-7 h-7 text-blue-400"/>
+                                    <h1 className="text-2xl font-bold">MoviePicker</h1>
                                 </div>
-                                <div className="flex gap-2 items-center">
-                                    <button onClick={() => {setState(s=>({...s,filter:'my-picks'})); newSuggestions();}} className={`px-3 py-2 rounded-lg transition text-xs font-medium ${state.filter==='my-picks'?'bg-purple-600':'bg-gray-800 hover:bg-gray-700'}`}>My picks</button>
-                                    <button onClick={() => {setState(s=>({...s,filter:'winners'})); newSuggestions();}} className={`px-3 py-2 rounded-lg transition text-xs font-medium ${state.filter==='winners'?'bg-yellow-600':'bg-gray-800 hover:bg-gray-700'}`}>Winners</button>
-                                    <button onClick={() => {setState(s=>({...s,filter:'runner-ups'})); newSuggestions();}} className={`px-3 py-2 rounded-lg transition text-xs font-medium ${state.filter==='runner-ups'?'bg-blue-600':'bg-gray-800 hover:bg-gray-700'}`}>Runner-up</button>
-                                    <button onClick={newSuggestions} className="p-2 bg-gray-800 hover:bg-gray-700 rounded-lg transition"><RefreshCw className="w-4 h-4"/></button>
-                                </div>
+                                
+                                <nav className="flex gap-2 md:gap-4">
+                                    <button
+                                        onClick={() => setState(s => ({...s, page: 'wishlist', selected: null, backTo: null}))}
+                                        className={`flex items-center gap-1.5 px-3 md:px-4 py-2 rounded-lg transition font-medium text-sm md:text-base ${
+                                            state.page === 'wishlist' ? 'bg-purple-600' : 'hover:bg-gray-800'
+                                        }`}
+                                    >
+                                        <Heart className="w-4 h-4"/>
+                                        <span className="hidden sm:inline">Wish list</span>
+                                    </button>
+                                    
+                                    <button
+                                        onClick={() => setState(s => ({...s, page: 'oscar', selected: null, backTo: null}))}
+                                        className={`flex items-center gap-1.5 px-3 md:px-4 py-2 rounded-lg transition font-medium text-sm md:text-base ${
+                                            state.page === 'oscar' ? 'bg-yellow-600' : 'hover:bg-gray-800'
+                                        }`}
+                                    >
+                                        <Award className="w-4 h-4"/>
+                                        <span className="hidden sm:inline">Oscar movies</span>
+                                    </button>
+                                    
+                                    <button
+                                        onClick={() => setState(s => ({...s, page: 'watched', selected: null, backTo: null}))}
+                                        className={`flex items-center gap-1.5 px-3 md:px-4 py-2 rounded-lg transition font-medium text-sm md:text-base ${
+                                            state.page === 'watched' ? 'bg-green-600' : 'hover:bg-gray-800'
+                                        }`}
+                                    >
+                                        <Eye className="w-4 h-4"/>
+                                        <span className="hidden sm:inline">Watched</span>
+                                    </button>
+                                </nav>
                             </div>
                         </div>
-                    </div>
+                    </header>
 
-                    <div className="max-w-6xl mx-auto px-4 py-8">
-                        {getFiltered().filter(m=>!state.watched.includes(m)).length===0 ? (
-                            <div className="text-center py-12"><h2 className="text-2xl font-semibold mb-4">🎉 You've watched everything in this category!</h2></div>
-                        ) : (
-                            <>
-                                <div className="relative">
-                                    {state.slide > 0 && <button onClick={() => setState(s=>({...s,slide:s.slide-1}))} className="hidden lg:block absolute left-0 top-1/2 -translate-y-1/2 -translate-x-12 z-10 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg transition"><ChevronLeft className="w-6 h-6"/></button>}
-                                    {state.slide < state.suggestions.length-1 && <button onClick={() => setState(s=>({...s,slide:s.slide+1}))} className="hidden lg:block absolute right-0 top-1/2 -translate-y-1/2 translate-x-12 z-10 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg transition"><ChevronRight className="w-6 h-6"/></button>}
-                                    <div className="overflow-hidden">
-                                        <div className="flex gap-4 transition-transform duration-500 ease-out" style={{transform:`translateX(calc(-${state.slide*100}% - ${state.slide*16}px))`}} onTouchStart={e => e.currentTarget.dataset.startX=e.touches[0].clientX} onTouchEnd={e => {const d=parseFloat(e.currentTarget.dataset.startX)-e.changedTouches[0].clientX; if(Math.abs(d)>50){if(d>0 && state.slide<state.suggestions.length-1) setState(s=>({...s,slide:s.slide+1})); else if(d<0 && state.slide>0) setState(s=>({...s,slide:s.slide-1}));}}}>
-                                            {state.suggestions.map((m,i) => <div key={i} className="flex-shrink-0" style={{width:'calc(100% - 80px)'}}><Card m={m} compact={true}/></div>)}
+                    {/* Main Content */}
+                    <main className="max-w-7xl mx-auto px-4 py-8">
+                        {state.page === 'home' && (
+                            <div>
+                                {/* Filter bar with Refresh on right */}
+                                <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
+                                    <div className="flex gap-2 flex-wrap">
+                                        <button
+                                            onClick={() => {
+                                                setState(s => ({...s, homeFilter: 'all'}));
+                                                setTimeout(generateSuggestions, 100);
+                                            }}
+                                            className={`px-4 py-2 rounded-lg transition font-medium text-sm ${
+                                                state.homeFilter === 'all' ? 'bg-blue-600' : 'bg-gray-800 hover:bg-gray-700'
+                                            }`}
+                                        >
+                                            All
+                                        </button>
+                                        <button
+                                            onClick={() => {
+                                                setState(s => ({...s, homeFilter: 'wishlist'}));
+                                                setTimeout(generateSuggestions, 100);
+                                            }}
+                                            className={`px-4 py-2 rounded-lg transition font-medium text-sm ${
+                                                state.homeFilter === 'wishlist' ? 'bg-purple-600' : 'bg-gray-800 hover:bg-gray-700'
+                                            }`}
+                                        >
+                                            Wish list only
+                                        </button>
+                                        <button
+                                            onClick={() => {
+                                                setState(s => ({...s, homeFilter: 'oscar'}));
+                                                setTimeout(generateSuggestions, 100);
+                                            }}
+                                            className={`px-4 py-2 rounded-lg transition font-medium text-sm ${
+                                                state.homeFilter === 'oscar' ? 'bg-yellow-600' : 'bg-gray-800 hover:bg-gray-700'
+                                            }`}
+                                        >
+                                            Oscar movies only
+                                        </button>
+                                    </div>
+                                    
+                                    <button
+                                        onClick={generateSuggestions}
+                                        className="flex items-center gap-2 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 px-5 py-2 rounded-lg transition shadow-lg font-medium text-sm"
+                                    >
+                                        <RefreshCw className="w-4 h-4"/>
+                                        Refresh picks
+                                    </button>
+                                </div>
+
+                                {/* Suggestions Carousel */}
+                                {state.suggestions.length === 0 ? (
+                                    <div className="text-center py-20">
+                                        <Film className="w-20 h-20 text-gray-600 mx-auto mb-4"/>
+                                        <h2 className="text-2xl font-semibold mb-2">No unwatched movies</h2>
+                                        <p className="text-gray-400">
+                                            {state.homeFilter === 'all' && "You've watched everything! Time to add more movies."}
+                                            {state.homeFilter === 'wishlist' && "You've watched all movies in your wish list!"}
+                                            {state.homeFilter === 'oscar' && "You've watched all Oscar movies!"}
+                                        </p>
+                                    </div>
+                                ) : (
+                                    <div className="relative">
+                                        {/* Desktop Navigation Arrows */}
+                                        {state.carouselIndex > 0 && (
+                                            <button
+                                                onClick={() => setState(s => ({...s, carouselIndex: s.carouselIndex - 1}))}
+                                                className="hidden lg:block absolute left-0 top-1/2 -translate-y-1/2 -translate-x-16 z-10 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg transition"
+                                            >
+                                                <ChevronLeft className="w-6 h-6"/>
+                                            </button>
+                                        )}
+                                        
+                                        {state.carouselIndex < state.suggestions.length - 1 && (
+                                            <button
+                                                onClick={() => setState(s => ({...s, carouselIndex: s.carouselIndex + 1}))}
+                                                className="hidden lg:block absolute right-0 top-1/2 -translate-y-1/2 translate-x-16 z-10 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg transition"
+                                            >
+                                                <ChevronRight className="w-6 h-6"/>
+                                            </button>
+                                        )}
+
+                                        {/* Carousel */}
+                                        <div className="overflow-hidden">
+                                            <div 
+                                                className="flex gap-6 transition-transform duration-500 ease-out"
+                                                style={{
+                                                    transform: `translateX(calc(-${state.carouselIndex * 100}% - ${state.carouselIndex * 24}px))`
+                                                }}
+                                            >
+                                                {state.suggestions.map((movie, i) => (
+                                                    <div key={i} className="flex-shrink-0 w-full max-w-md mx-auto">
+                                                        <TallCard movie={movie} onClick={() => openDetail(movie, 'home')}/>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        {/* Dots Indicator */}
+                                        <div className="flex justify-center gap-2 mt-6">
+                                            {state.suggestions.map((_, i) => (
+                                                <button
+                                                    key={i}
+                                                    onClick={() => setState(s => ({...s, carouselIndex: i}))}
+                                                    className={`h-2 rounded-full transition-all ${
+                                                        state.carouselIndex === i ? 'bg-pink-500 w-8' : 'bg-gray-600 w-2'
+                                                    }`}
+                                                />
+                                            ))}
                                         </div>
                                     </div>
-                                    <div className="flex justify-center gap-2 mt-6">{state.suggestions.map((_,i) => <button key={i} onClick={() => setState(s=>({...s,slide:i}))} className={`h-2 rounded-full transition-all ${state.slide===i?'bg-pink-500 w-8':'bg-gray-600 w-2'}`}/>)}</div>
-                                </div>
-                            </>
+                                )}
+                            </div>
                         )}
-                    </div>
 
+                        {state.page === 'wishlist' && (
+                            <div>
+                                <h2 className="text-3xl font-bold mb-6 flex items-center gap-3">
+                                    <Heart className="w-8 h-8 text-purple-400"/>
+                                    My Wish list
+                                </h2>
+                                
+                                {state.wishlist.length === 0 ? (
+                                    <div className="text-center py-20">
+                                        <Heart className="w-20 h-20 text-gray-600 mx-auto mb-4"/>
+                                        <h3 className="text-xl font-semibold mb-2">Your wish list is empty</h3>
+                                        <p className="text-gray-400">Add movies you want to watch!</p>
+                                        <p className="text-sm text-yellow-400 mt-4">Note: Adding to wish list feature coming soon!</p>
+                                    </div>
+                                ) : (
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                        {state.wishlist
+                                            .filter(m => !state.watched.includes(m))
+                                            .map((movie, i) => (
+                                                <SmallCard key={i} movie={movie} onClick={() => openDetail(movie, 'wishlist')}/>
+                                            ))
+                                        }
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {state.page === 'oscar' && (
+                            <div>
+                                <h2 className="text-3xl font-bold mb-4 flex items-center gap-3">
+                                    <Award className="w-8 h-8 text-yellow-400"/>
+                                    Oscar Movies
+                                </h2>
+                                
+                                {/* Oscar Filters */}
+                                <div className="flex flex-wrap gap-2 mb-6">
+                                    <button
+                                        onClick={() => setState(s => ({...s, oscarFilter: 'all'}))}
+                                        className={`px-4 py-2 rounded-lg transition font-medium text-sm ${
+                                            state.oscarFilter === 'all' ? 'bg-yellow-600' : 'bg-gray-800 hover:bg-gray-700'
+                                        }`}
+                                    >
+                                        All
+                                    </button>
+                                    <button
+                                        onClick={() => setState(s => ({...s, oscarFilter: 'best-picture'}))}
+                                        className={`px-4 py-2 rounded-lg transition font-medium text-sm ${
+                                            state.oscarFilter === 'best-picture' ? 'bg-yellow-500' : 'bg-gray-800 hover:bg-gray-700'
+                                        }`}
+                                    >
+                                        Best Picture
+                                    </button>
+                                    <button
+                                        onClick={() => setState(s => ({...s, oscarFilter: 'best-actor'}))}
+                                        className={`px-4 py-2 rounded-lg transition font-medium text-sm ${
+                                            state.oscarFilter === 'best-actor' ? 'bg-yellow-600' : 'bg-gray-800 hover:bg-gray-700'
+                                        }`}
+                                    >
+                                        Best Actor/Actress
+                                    </button>
+                                    <button
+                                        onClick={() => setState(s => ({...s, oscarFilter: 'foreign'}))}
+                                        className={`px-4 py-2 rounded-lg transition font-medium text-sm ${
+                                            state.oscarFilter === 'foreign' ? 'bg-green-600' : 'bg-gray-800 hover:bg-gray-700'
+                                        }`}
+                                    >
+                                        Foreign Language
+                                    </button>
+                                    <button
+                                        onClick={() => setState(s => ({...s, oscarFilter: 'runner-up'}))}
+                                        className={`px-4 py-2 rounded-lg transition font-medium text-sm ${
+                                            state.oscarFilter === 'runner-up' ? 'bg-blue-600' : 'bg-gray-800 hover:bg-gray-700'
+                                        }`}
+                                    >
+                                        Runner-ups
+                                    </button>
+                                </div>
+
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                    {getOscarMovies()
+                                        .filter(m => !state.watched.includes(m))
+                                        .sort((a, b) => {
+                                            const aYear = state.details[a]?.release_date ? new Date(state.details[a].release_date).getFullYear() : 0;
+                                            const bYear = state.details[b]?.release_date ? new Date(state.details[b].release_date).getFullYear() : 0;
+                                            return bYear - aYear;
+                                        })
+                                        .map((movie, i) => (
+                                            <SmallCard key={i} movie={movie} onClick={() => openDetail(movie, 'oscar')}/>
+                                        ))
+                                    }
+                                </div>
+                            </div>
+                        )}
+
+                        {state.page === 'watched' && (
+                            <div>
+                                <h2 className="text-3xl font-bold mb-6 flex items-center gap-3">
+                                    <Eye className="w-8 h-8 text-green-400"/>
+                                    Watched Movies
+                                </h2>
+                                
+                                {state.watched.length === 0 ? (
+                                    <div className="text-center py-20">
+                                        <Eye className="w-20 h-20 text-gray-600 mx-auto mb-4"/>
+                                        <h3 className="text-xl font-semibold mb-2">No watched movies yet</h3>
+                                        <p className="text-gray-400">Start watching and mark movies as watched!</p>
+                                    </div>
+                                ) : (
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                        {[...state.watched]
+                                            .sort((a, b) => {
+                                                const aDate = state.watchedDates[a] || '';
+                                                const bDate = state.watchedDates[b] || '';
+                                                return bDate.localeCompare(aDate);
+                                            })
+                                            .map((movie, i) => (
+                                                <SmallCard key={i} movie={movie} onClick={() => openDetail(movie, 'watched')}/>
+                                            ))
+                                        }
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </main>
+
+                    {/* Trailer Modal */}
                     {state.trailer && (
-                        <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 p-4">
-                            <div className="relative w-full max-w-4xl">
-                                <button onClick={() => setState(s=>({...s,trailer:null}))} className="absolute -top-12 right-0 text-white hover:text-gray-300 transition"><X className="w-8 h-8"/></button>
-                                <div className="relative pt-[56.25%]"><iframe className="absolute inset-0 w-full h-full" src={`https://www.youtube.com/embed/${state.trailer}`} title="Trailer" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen></iframe></div>
+                        <div className="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-50 p-4" onClick={() => setState(s => ({...s, trailer: null}))}>
+                            <div className="relative w-full max-w-5xl" onClick={(e) => e.stopPropagation()}>
+                                <button
+                                    onClick={() => setState(s => ({...s, trailer: null}))}
+                                    className="absolute -top-12 right-0 text-white hover:text-gray-300 transition"
+                                >
+                                    <X className="w-8 h-8"/>
+                                </button>
+                                <div className="relative pt-[56.25%]">
+                                    <iframe
+                                        className="absolute inset-0 w-full h-full rounded-lg"
+                                        src={`https://www.youtube.com/embed/${state.trailer}?autoplay=1`}
+                                        title="Movie Trailer"
+                                        frameBorder="0"
+                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                        allowFullScreen
+                                    ></iframe>
+                                </div>
                             </div>
                         </div>
                     )}
 
-                    {state.selected && (
-                        <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 p-4 overflow-y-auto">
-                            <div className="relative w-full max-w-5xl my-8">
-                                <button onClick={() => setState(s=>({...s,selected:null}))} className="absolute -top-12 right-0 text-white hover:text-gray-300 transition z-10"><X className="w-8 h-8"/></button>
-                                <div className="bg-gray-800 rounded-lg overflow-hidden shadow-2xl"><Card m={state.selected} compact={false}/></div>
-                            </div>
-                        </div>
-                    )}
+                    {/* Detail Modal */}
+                    {state.selected && <DetailModal movie={state.selected}/>}
                 </div>
             );
         }
 
-        ReactDOM.render(<MoviePicker />, document.getElementById('root'));
+        try {
+            const rootElement = document.getElementById('root');
+            if (!rootElement) {
+                console.error('Root element not found!');
+            } else {
+                ReactDOM.render(<MoviePicker />, rootElement);
+                console.log('MoviePicker rendered successfully');
+            }
+        } catch (error) {
+            console.error('Error rendering MoviePicker:', error);
+            document.body.innerHTML = '<div style="color: red; padding: 20px;">Error loading app. Check console for details.</div>';
+        }
     </script>
 </body>
 </html>
