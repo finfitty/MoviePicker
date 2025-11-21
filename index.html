@@ -28,6 +28,8 @@
         .card-shuffle-1 { animation: cardShuffle 1.5s ease-in-out infinite; }
         .card-shuffle-2 { animation: cardShuffle 1.5s ease-in-out infinite; animation-delay: 0.2s; }
         .card-shuffle-3 { animation: cardShuffle 1.5s ease-in-out infinite; animation-delay: 0.4s; }
+        .toggle-switch { transition: background-color 0.3s ease; }
+        .toggle-knob { transition: transform 0.3s ease; }
     </style>
 </head>
 <body>
@@ -36,7 +38,7 @@
             <div style="text-align: center;">
                 <div style="font-size: 48px; margin-bottom: 20px;">🎬</div>
                 <p style="font-size: 24px; margin-bottom: 10px;">Loading MoviePicker...</p>
-                <p style="font-size: 14px; color: #888;">This may take 30-60 seconds</p>
+                <p style="font-size: 14px; color: #888;">This may take a few minutes</p>
             </div>
         </div>
     </div>
@@ -49,6 +51,7 @@
         const { useState, useEffect } = React;
         const TOKEN = 'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI4NDZkYmQ3NzY5MmE3MDY3NGNlMTBhMWM2YjRkNjY2YyIsIm5iZiI6MTc2MzQyMzc5MS4wMDg5OTk4LCJzdWIiOiI2OTFiYjYyZmMzMjkxYzk2ODdjN2QyYTQiLCJzY29wZXMiOlsiYXBpX3JlYWQiXSwidmVyc2lvbiI6MX0.yceVQdz0-IeMdfCDLlmerZZZ9X95mX_5MUEuTHEKnXM';
         
+        // Icons
         const Film = ({className}) => <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="2" width="20" height="20" rx="2"/><path d="M7 2v20M17 2v20M2 12h20"/></svg>;
         const X = ({className}) => <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>;
         const Play = ({className}) => <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>;
@@ -60,16 +63,43 @@
         const Eye = ({className}) => <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>;
         const ExternalLink = ({className}) => <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>;
 
+        // ============================================
+        // OSCAR DATA
+        // ============================================
+        const bestPictureWinners = ["Wings","The Broadway Melody","All Quiet on the Western Front","Cimarron","Grand Hotel","Cavalcade","It Happened One Night","Mutiny on the Bounty","The Great Ziegfeld","The Life of Emile Zola","You Can't Take It with You","Gone with the Wind","Rebecca","How Green Was My Valley","Mrs. Miniver","Casablanca","Going My Way","The Lost Weekend","The Best Years of Our Lives","Gentleman's Agreement","Hamlet","All the King's Men","All About Eve","An American in Paris","The Greatest Show on Earth","From Here to Eternity","On the Waterfront","Marty","Around the World in 80 Days","The Bridge on the River Kwai","Gigi","Ben-Hur","The Apartment","West Side Story","Lawrence of Arabia","Tom Jones","My Fair Lady","The Sound of Music","A Man for All Seasons","In the Heat of the Night","Oliver!","Midnight Cowboy","Patton","The French Connection","The Godfather","The Sting","The Godfather Part II","One Flew Over the Cuckoo's Nest","Rocky","Annie Hall","The Deer Hunter","Kramer vs. Kramer","Ordinary People","Chariots of Fire","Gandhi","Terms of Endearment","Amadeus","Out of Africa","Platoon","The Last Emperor","Rain Man","Driving Miss Daisy","Dances with Wolves","The Silence of the Lambs","Unforgiven","Schindler's List","Forrest Gump","Braveheart","The English Patient","Titanic","Shakespeare in Love","American Beauty","Gladiator","A Beautiful Mind","Chicago","The Lord of the Rings: The Return of the King","Million Dollar Baby","Crash","The Departed","No Country for Old Men","Slumdog Millionaire","The Hurt Locker","The King's Speech","The Artist","Argo","12 Years a Slave","Birdman","Spotlight","Moonlight","The Shape of Water","Green Book","Parasite","Nomadland","CODA","Everything Everywhere All at Once","Oppenheimer"];
+
+        const bestPictureNominees = ["Born Yesterday","Father of the Bride","King Solomon's Mines","Sunset Boulevard","Decision Before Dawn","A Place in the Sun","Quo Vadis","A Streetcar Named Desire","High Noon","Ivanhoe","Moulin Rouge","The Quiet Man","Julius Caesar","The Robe","Roman Holiday","Shane","The Caine Mutiny","The Country Girl","Seven Brides for Seven Brothers","Three Coins in the Fountain","Love Is a Many-Splendored Thing","Mister Roberts","Picnic","The Rose Tattoo","Friendly Persuasion","Giant","The King and I","The Ten Commandments","Peyton Place","Sayonara","Twelve Angry Men","Witness for the Prosecution","Auntie Mame","Cat on a Hot Tin Roof","The Defiant Ones","Separate Tables","Anatomy of a Murder","The Diary of Anne Frank","The Nun's Story","Room at the Top","The Alamo","Elmer Gantry","Sons and Lovers","The Sundowners","Fanny","The Guns of Navarone","The Hustler","Judgment at Nuremberg","The Longest Day","The Music Man","To Kill a Mockingbird","America, America","Cleopatra","How the West Was Won","Lilies of the Field","Becket","Dr. Strangelove","Mary Poppins","Zorba the Greek","Darling","Doctor Zhivago","Ship of Fools","A Thousand Clowns","Alfie","The Russians Are Coming, the Russians Are Coming","The Sand Pebbles","Who's Afraid of Virginia Woolf?","Bonnie and Clyde","Doctor Dolittle","The Graduate","Guess Who's Coming to Dinner","Funny Girl","The Lion in Winter","Rachel, Rachel","Romeo and Juliet","Anne of the Thousand Days","Butch Cassidy and the Sundance Kid","Hello, Dolly!","Z","Airport","Five Easy Pieces","Love Story","MASH","A Clockwork Orange","Fiddler on the Roof","The Last Picture Show","Nicholas and Alexandra","Cabaret","Deliverance","The Emigrants","Sounder","American Graffiti","Cries and Whispers","The Exorcist","A Touch of Class","Chinatown","The Conversation","Lenny","The Towering Inferno","Barry Lyndon","Dog Day Afternoon","Jaws","Nashville","All the President's Men","Bound for Glory","Network","Taxi Driver","The Goodbye Girl","Julia","Star Wars","The Turning Point","Coming Home","Heaven Can Wait","Midnight Express","An Unmarried Woman","All That Jazz","Apocalypse Now","Breaking Away","Norma Rae","Coal Miner's Daughter","The Elephant Man","Raging Bull","Tess","Atlantic City","On Golden Pond","Raiders of the Lost Ark","Reds","E.T. the Extra-Terrestrial","Missing","Tootsie","The Verdict","The Big Chill","The Dresser","The Right Stuff","Tender Mercies","The Killing Fields","A Passage to India","Places in the Heart","A Soldier's Story","The Color Purple","Kiss of the Spider Woman","Prizzi's Honor","Witness","Children of a Lesser God","Hannah and Her Sisters","The Mission","A Room with a View","Broadcast News","Fatal Attraction","Hope and Glory","Moonstruck","The Accidental Tourist","Dangerous Liaisons","Mississippi Burning","Working Girl","Born on the Fourth of July","Dead Poets Society","Field of Dreams","My Left Foot","Awakenings","Ghost","The Godfather Part III","Goodfellas","Bugsy","JFK","The Prince of Tides","Beauty and the Beast","The Crying Game","A Few Good Men","Howards End","Scent of a Woman","The Fugitive","In the Name of the Father","The Piano","The Remains of the Day","Four Weddings and a Funeral","Pulp Fiction","Quiz Show","The Shawshank Redemption","Apollo 13","Babe","Il Postino","Sense and Sensibility","Fargo","Jerry Maguire","Secrets & Lies","Shine","As Good as It Gets","The Full Monty","Good Will Hunting","L.A. Confidential","Elizabeth","Life Is Beautiful","Saving Private Ryan","The Thin Red Line","The Cider House Rules","The Green Mile","The Insider","The Sixth Sense","Chocolat","Crouching Tiger, Hidden Dragon","Erin Brockovich","Traffic","Gosford Park","In the Bedroom","The Lord of the Rings: The Fellowship of the Ring","Moulin Rouge!","Gangs of New York","The Hours","The Lord of the Rings: The Two Towers","The Pianist","Lost in Translation","Master and Commander: The Far Side of the World","Mystic River","Seabiscuit","The Aviator","Finding Neverland","Ray","Sideways","Brokeback Mountain","Capote","Good Night, and Good Luck","Munich","Babel","Letters from Iwo Jima","Little Miss Sunshine","The Queen","Atonement","Juno","Michael Clayton","There Will Be Blood","The Curious Case of Benjamin Button","Frost/Nixon","Milk","The Reader","Avatar","The Blind Side","District 9","An Education","Inglourious Basterds","Precious","A Serious Man","Up","Up in the Air","Black Swan","The Fighter","Inception","The Kids Are All Right","127 Hours","The Social Network","Toy Story 3","True Grit","Winter's Bone","The Descendants","Extremely Loud & Incredibly Close","The Help","Hugo","Midnight in Paris","Moneyball","The Tree of Life","War Horse","Amour","Beasts of the Southern Wild","Django Unchained","Les Misérables","Life of Pi","Lincoln","Silver Linings Playbook","Zero Dark Thirty","American Hustle","Captain Phillips","Dallas Buyers Club","Gravity","Her","Nebraska","Philomena","The Wolf of Wall Street","American Sniper","Boyhood","The Grand Budapest Hotel","The Imitation Game","Selma","The Theory of Everything","Whiplash","The Big Short","Bridge of Spies","Brooklyn","Mad Max: Fury Road","The Martian","The Revenant","Room","Arrival","Fences","Hacksaw Ridge","Hell or High Water","Hidden Figures","La La Land","Lion","Manchester by the Sea","Call Me by Your Name","Darkest Hour","Dunkirk","Get Out","Lady Bird","Phantom Thread","The Post","Three Billboards Outside Ebbing, Missouri","Black Panther","BlacKkKlansman","Bohemian Rhapsody","The Favourite","Roma","A Star Is Born","Vice","Ford v Ferrari","The Irishman","Jojo Rabbit","Joker","Little Women","Marriage Story","1917","Once Upon a Time in Hollywood","The Father","Judas and the Black Messiah","Mank","Minari","Promising Young Woman","Sound of Metal","The Trial of the Chicago 7","Belfast","Don't Look Up","Drive My Car","Dune","King Richard","Licorice Pizza","Nightmare Alley","The Power of the Dog","West Side Story","All Quiet on the Western Front","Avatar: The Way of Water","The Banshees of Inisherin","Elvis","The Fabelmans","Tár","Top Gun: Maverick","Triangle of Sadness","Women Talking","American Fiction","Anatomy of a Fall","Barbie","The Holdovers","Killers of the Flower Moon","Maestro","Past Lives","Poor Things","The Zone of Interest"];
+
+        const bestDirector = ["Patton","The French Connection","Cabaret","The Sting","The Godfather Part II","One Flew Over the Cuckoo's Nest","Rocky","Annie Hall","The Deer Hunter","Kramer vs. Kramer","Ordinary People","Reds","Gandhi","Terms of Endearment","Amadeus","Out of Africa","Platoon","The Last Emperor","Rain Man","Born on the Fourth of July","Dances with Wolves","The Silence of the Lambs","Unforgiven","Schindler's List","Forrest Gump","Braveheart","The English Patient","Titanic","Saving Private Ryan","American Beauty","Traffic","A Beautiful Mind","The Pianist","The Lord of the Rings: The Return of the King","Million Dollar Baby","Brokeback Mountain","The Departed","No Country for Old Men","Slumdog Millionaire","The Hurt Locker","The King's Speech","The Artist","Life of Pi","Gravity","Birdman","The Revenant","La La Land","The Shape of Water","Roma","Parasite","Nomadland","The Power of the Dog","Everything Everywhere All at Once","Oppenheimer"];
+
+        const bestActor = ["Patton","The French Connection","The Godfather","Save the Tiger","Harry and Tonto","One Flew Over the Cuckoo's Nest","Network","The Goodbye Girl","Coming Home","Kramer vs. Kramer","Raging Bull","On Golden Pond","Gandhi","Tender Mercies","Amadeus","Kiss of the Spider Woman","The Color of Money","Wall Street","Rain Man","My Left Foot","Reversal of Fortune","The Silence of the Lambs","Scent of a Woman","Philadelphia","Forrest Gump","Leaving Las Vegas","Shine","As Good as It Gets","Life Is Beautiful","American Beauty","Gladiator","Training Day","The Pianist","Mystic River","Ray","Capote","The Last King of Scotland","There Will Be Blood","Milk","Crazy Heart","The King's Speech","The Artist","Lincoln","Dallas Buyers Club","The Theory of Everything","The Revenant","Manchester by the Sea","Darkest Hour","Bohemian Rhapsody","Joker","The Father","King Richard","The Whale","Oppenheimer"];
+
+        const bestActress = ["Women in Love","Klute","Cabaret","A Touch of Class","Alice Doesn't Live Here Anymore","One Flew Over the Cuckoo's Nest","Network","Annie Hall","Coming Home","Norma Rae","Coal Miner's Daughter","On Golden Pond","Sophie's Choice","Terms of Endearment","Places in the Heart","The Trip to Bountiful","Children of a Lesser God","Moonstruck","The Accused","Driving Miss Daisy","Misery","The Silence of the Lambs","Howards End","The Piano","Blue Sky","Dead Man Walking","Fargo","As Good as It Gets","Shakespeare in Love","Boys Don't Cry","Erin Brockovich","Monster's Ball","The Hours","Monster","Million Dollar Baby","Walk the Line","The Queen","La Vie en Rose","The Reader","The Blind Side","Black Swan","The Iron Lady","Silver Linings Playbook","Blue Jasmine","Still Alice","Room","La La Land","Three Billboards Outside Ebbing, Missouri","The Favourite","Judy","Nomadland","The Eyes of Tammy Faye","Everything Everywhere All at Once","Poor Things"];
+
+        const bestOriginalScreenplay = ["Patton","The Hospital","The Candidate","The Sting","Chinatown","Dog Day Afternoon","Network","Annie Hall","Coming Home","Breaking Away","Melvin and Howard","Chariots of Fire","Gandhi","Tender Mercies","Places in the Heart","Witness","Hannah and Her Sisters","Moonstruck","Rain Man","Dead Poets Society","Ghost","Thelma & Louise","The Crying Game","The Piano","Pulp Fiction","The Usual Suspects","Fargo","Good Will Hunting","Shakespeare in Love","American Beauty","Almost Famous","Gosford Park","Talk to Her","Lost in Translation","Eternal Sunshine of the Spotless Mind","Crash","Little Miss Sunshine","Juno","Milk","The Hurt Locker","The King's Speech","Midnight in Paris","Django Unchained","Her","Birdman","Spotlight","Manchester by the Sea","Get Out","Green Book","Parasite","Promising Young Woman","Belfast","Everything Everywhere All at Once","Anatomy of a Fall"];
+
+        const bestAdaptedScreenplay = ["MASH","The French Connection","The Godfather","The Exorcist","The Godfather Part II","One Flew Over the Cuckoo's Nest","All the President's Men","Julia","Midnight Express","Kramer vs. Kramer","Ordinary People","On Golden Pond","Missing","Terms of Endearment","Amadeus","Out of Africa","A Room with a View","The Last Emperor","Dangerous Liaisons","Driving Miss Daisy","Dances with Wolves","The Silence of the Lambs","Howards End","Schindler's List","Forrest Gump","Sense and Sensibility","Sling Blade","L.A. Confidential","Gods and Monsters","The Cider House Rules","Traffic","A Beautiful Mind","The Pianist","The Lord of the Rings: The Return of the King","Sideways","Brokeback Mountain","The Departed","No Country for Old Men","Slumdog Millionaire","Precious","The Social Network","The Descendants","Argo","12 Years a Slave","The Imitation Game","The Big Short","Moonlight","Call Me by Your Name","BlacKkKlansman","Jojo Rabbit","The Father","CODA","Women Talking","American Fiction"];
+
+        const bestCinematography = ["Ryan's Daughter","Fiddler on the Roof","Cabaret","Cries and Whispers","The Towering Inferno","Barry Lyndon","Bound for Glory","Close Encounters of the Third Kind","Days of Heaven","Apocalypse Now","Tess","Reds","Gandhi","Fanny and Alexander","The Killing Fields","Out of Africa","The Mission","The Last Emperor","Mississippi Burning","Glory","Dances with Wolves","JFK","A River Runs Through It","Schindler's List","Legends of the Fall","Braveheart","The English Patient","Titanic","Saving Private Ryan","American Beauty","Crouching Tiger, Hidden Dragon","The Lord of the Rings: The Fellowship of the Ring","Road to Perdition","Master and Commander: The Far Side of the World","The Aviator","Memoirs of a Geisha","Pan's Labyrinth","There Will Be Blood","Slumdog Millionaire","Avatar","Inception","Hugo","Life of Pi","Gravity","Birdman","The Revenant","La La Land","Blade Runner 2049","Roma","1917","Mank","Dune","All Quiet on the Western Front","Oppenheimer"];
+
+        const bestFilmEditing = ["Patton","The French Connection","Cabaret","The Sting","The Towering Inferno","Jaws","Rocky","Star Wars","The Deer Hunter","All That Jazz","Raging Bull","Raiders of the Lost Ark","Gandhi","The Right Stuff","The Killing Fields","Witness","Platoon","The Last Emperor","Who Framed Roger Rabbit","Born on the Fourth of July","Dances with Wolves","JFK","Unforgiven","Schindler's List","Forrest Gump","Apollo 13","The English Patient","Titanic","Saving Private Ryan","The Matrix","Traffic","Black Hawk Down","Chicago","The Lord of the Rings: The Return of the King","The Aviator","Crash","The Departed","The Bourne Ultimatum","Slumdog Millionaire","The Hurt Locker","The Social Network","The Girl with the Dragon Tattoo","Argo","Gravity","Whiplash","Mad Max: Fury Road","Hacksaw Ridge","Dunkirk","Bohemian Rhapsody","Ford v Ferrari","Sound of Metal","Dune","Everything Everywhere All at Once","Oppenheimer"];
+
+        const bestAnimatedFeature = ["Shrek","Spirited Away","Finding Nemo","The Incredibles","Wallace & Gromit: The Curse of the Were-Rabbit","Happy Feet","Ratatouille","WALL-E","Up","Toy Story 3","Rango","Brave","Frozen","Big Hero 6","Inside Out","Zootopia","Coco","Spider-Man: Into the Spider-Verse","Toy Story 4","Soul","Encanto","Guillermo del Toro's Pinocchio","The Boy and the Heron"];
+
+        const bestInternationalFeature = ["Investigation of a Citizen Above Suspicion","The Garden of the Finzi-Continis","The Discreet Charm of the Bourgeoisie","Day for Night","Amarcord","Dersu Uzala","Black and White in Color","Madame Rosa","Get Out Your Handkerchiefs","The Tin Drum","Moscow Does Not Believe in Tears","Mephisto","Volver a Empezar","Fanny and Alexander","Dangerous Moves","The Official Story","The Assault","Babette's Feast","Pelle the Conqueror","Cinema Paradiso","Journey of Hope","Mediterraneo","Indochine","Belle Époque","Burnt by the Sun","Antonia's Line","Kolya","Character","Life Is Beautiful","All About My Mother","Crouching Tiger, Hidden Dragon","No Man's Land","Nowhere in Africa","The Barbarian Invasions","The Sea Inside","Tsotsi","The Lives of Others","The Counterfeiters","Departures","The Secret in Their Eyes","In a Better World","A Separation","Amour","The Great Beauty","Ida","Son of Saul","The Salesman","A Fantastic Woman","Roma","Parasite","Another Round","Drive My Car","All Quiet on the Western Front","The Zone of Interest"];
+
+        const bestDocumentaryFeature = ["Woodstock","The Hellstrom Chronicle","Marjoe","The Great American Cowboy","Hearts and Minds","The Man Who Skied Down Everest","Harlan County U.S.A.","Who Are the DeBolts? And Where Did They Get Nineteen Kids?","Scared Straight!","Best Boy","From Mao to Mozart: Isaac Stern in China","Genocide","Just Another Missing Kid","He Makes Me Feel Like Dancin'","The Times of Harvey Milk","Broken Rainbow","Artie Shaw: Time Is All You've Got","The Ten-Year Lunch: The Wit and Legend of the Algonquin Round Table","Hotel Terminus: The Life and Times of Klaus Barbie","Common Threads: Stories from the Quilt","American Dream","In the Shadow of the Stars","The Panama Deception","I Am a Promise: The Children of Stanton Elementary School","Maya Lin: A Strong Clear Vision","Anne Frank Remembered","When We Were Kings","The Long Way Home","The Last Days","One Day in September","Into the Arms of Strangers: Stories of the Kindertransport","Murder on a Sunday Morning","Bowling for Columbine","The Fog of War","Born into Brothels","March of the Penguins","An Inconvenient Truth","Taxi to the Dark Side","Man on Wire","The Cove","Inside Job","Undefeated","Searching for Sugar Man","20 Feet from Stardom","Citizenfour","Amy","O.J.: Made in America","Icarus","Free Solo","American Factory","My Octopus Teacher","Summer of Soul","Navalny","20 Days in Mariupol"];
+
         function MoviePicker() {
             const [state, setState] = useState({
                 page: 'home',
-                homeFilter: 'all',
                 oscarFilter: 'all',
                 suggestions: [],
                 details: {},
                 loading: true,
                 loadingMsg: 'reading the tea leaves',
                 loadingMsgKey: 0,
+                loadingProgress: 0,
                 trailer: null,
                 watched: [],
                 watchedDates: {},
@@ -77,15 +107,25 @@
                 selectedMovie: null,
                 backTo: null,
                 carouselIndex: 0,
+                wishlistOnly: false,
                 wishlist: ["Scarface","Boogie Nights","Fargo","Raising Arizona","Norma Rae","My Life as a Dog","A River Runs Through It","Erin Brockovich","What's Eating Gilbert Grape","American Graffiti","Chinatown","One Flew Over the Cuckoo's Nest","Taxi Driver","Juno","Chariots of Fire","Psycho","Fried Green Tomatoes","Brokeback Mountain","Walk the Line"]
             });
 
-            const bestPicture = ["Wings","All Quiet on the Western Front","Grand Hotel","It Happened One Night","Mutiny on the Bounty","Gone with the Wind","Rebecca","Casablanca","The Best Years of Our Lives","All About Eve","From Here to Eternity","On the Waterfront","The Bridge on the River Kwai","Ben-Hur","The Apartment","West Side Story","Lawrence of Arabia","My Fair Lady","The Sound of Music","In the Heat of the Night","Midnight Cowboy","Patton","The French Connection","The Godfather","The Sting","The Godfather Part II","One Flew Over the Cuckoo's Nest","Rocky","Annie Hall","The Deer Hunter","Kramer vs. Kramer","Ordinary People","Chariots of Fire","Gandhi","Terms of Endearment","Amadeus","Out of Africa","Platoon","The Last Emperor","Rain Man","Driving Miss Daisy","Dances with Wolves","The Silence of the Lambs","Unforgiven","Schindler's List","Forrest Gump","Braveheart","The English Patient","Titanic","Shakespeare in Love","American Beauty","Gladiator","A Beautiful Mind","Chicago","The Lord of the Rings: The Return of the King","Million Dollar Baby","Crash","The Departed","No Country for Old Men","Slumdog Millionaire","The Hurt Locker","The King's Speech","The Artist","Argo","12 Years a Slave","Birdman","Spotlight","Moonlight","The Shape of Water","Green Book","Parasite","Nomadland","CODA","Everything Everywhere All at Once","Oppenheimer"];
-            const bestActorActress = ["Traffic","Training Day","Monster's Ball","The Pianist","Mystic River","The Aviator","Capote","The Queen","There Will Be Blood","Milk","Precious","The Fighter","The Iron Lady","Silver Linings Playbook","Dallas Buyers Club","Whiplash","Still Alice","The Revenant","Manchester by the Sea","Three Billboards Outside Ebbing, Missouri","Bohemian Rhapsody","Judy","Joker","The Father","King Richard","The Whale","Tár","Poor Things"];
-            const foreign = ["Cinema Paradiso","Life Is Beautiful","All About My Mother","Crouching Tiger, Hidden Dragon","Nowhere in Africa","The Barbarian Invasions","The Sea Inside","The Lives of Others","Departures","The Secret in Their Eyes","A Separation","Amour","The Great Beauty","Ida","Son of Saul","The Salesman","A Fantastic Woman","Roma","Parasite","Another Round","Drive My Car","All Quiet on the Western Front","The Zone of Interest"];
-            const runnerUps = ["Fargo","L.A. Confidential","Saving Private Ryan","The Sixth Sense","Crouching Tiger, Hidden Dragon","Erin Brockovich","The Lord of the Rings: The Fellowship of the Ring","The Pianist","Brokeback Mountain","Juno","There Will Be Blood","Avatar","Inception","The Social Network","Lincoln","Her","The Grand Budapest Hotel","Mad Max: Fury Road","La La Land","Get Out","Roma","Joker","1917","Dune","The Fabelmans","Barbie","Killers of the Flower Moon","Poor Things"];
-
-            const allMovies = [...new Set([...state.wishlist, ...bestPicture, ...bestActorActress, ...foreign, ...runnerUps])];
+            const allMovies = [...new Set([
+                ...state.wishlist,
+                ...bestPictureWinners,
+                ...bestPictureNominees,
+                ...bestDirector,
+                ...bestActor,
+                ...bestActress,
+                ...bestOriginalScreenplay,
+                ...bestAdaptedScreenplay,
+                ...bestCinematography,
+                ...bestFilmEditing,
+                ...bestAnimatedFeature,
+                ...bestInternationalFeature,
+                ...bestDocumentaryFeature
+            ])];
 
             useEffect(() => {
                 const dates = {};
@@ -95,47 +135,58 @@
                 setState(s => ({...s, wishlistDates: dates}));
             }, []);
 
-            const getCategories = (movie) => {
-                const cats = [];
-                if (state.wishlist.includes(movie)) cats.push({label:'Wish list', color:'bg-purple-600'});
-                if (bestPicture.includes(movie)) cats.push({label:'Best Picture', color:'bg-yellow-500'});
-                if (bestActorActress.includes(movie) && !bestPicture.includes(movie)) cats.push({label:'Best Actor/Actress', color:'bg-yellow-600'});
-                if (foreign.includes(movie)) cats.push({label:'Foreign Language', color:'bg-green-600'});
-                // Only show "Nominated" if it's ONLY a runner-up (not also a winner)
-                if (runnerUps.includes(movie) && !bestPicture.includes(movie) && !bestActorActress.includes(movie) && !foreign.includes(movie)) {
-                    cats.push({label:'Nominated', color:'bg-blue-600'});
-                }
-                return cats;
-            };
-
             const getAwardsText = (movie) => {
                 const awards = [];
-                if (bestPicture.includes(movie)) awards.push('Best Picture');
-                if (bestActorActress.includes(movie) && !bestPicture.includes(movie)) awards.push('Best Actor/Actress');
-                if (foreign.includes(movie)) awards.push('Foreign Language Film');
-                // Only show "Nominated" if not a winner
-                if (runnerUps.includes(movie) && !bestPicture.includes(movie) && !bestActorActress.includes(movie) && !foreign.includes(movie)) {
-                    awards.push('Nominated');
-                }
+                if (bestPictureWinners.includes(movie)) awards.push('Best Picture');
+                if (bestDirector.includes(movie) && !bestPictureWinners.includes(movie)) awards.push('Best Director');
+                if (bestActor.includes(movie)) awards.push('Best Actor');
+                if (bestActress.includes(movie)) awards.push('Best Actress');
+                if (bestOriginalScreenplay.includes(movie) && !awards.length) awards.push('Best Original Screenplay');
+                if (bestAdaptedScreenplay.includes(movie) && !awards.length) awards.push('Best Adapted Screenplay');
+                if (bestCinematography.includes(movie) && !awards.length) awards.push('Best Cinematography');
+                if (bestFilmEditing.includes(movie) && !awards.length) awards.push('Best Film Editing');
+                if (bestAnimatedFeature.includes(movie)) awards.push('Best Animated Feature');
+                if (bestInternationalFeature.includes(movie)) awards.push('Best International Feature Film');
+                if (bestDocumentaryFeature.includes(movie)) awards.push('Best Documentary Feature');
+                if (bestPictureNominees.includes(movie) && !bestPictureWinners.includes(movie) && awards.length === 0) awards.push('Best Picture Nominee');
                 return awards.join(', ');
             };
 
-            const isInOscarMovies = (movie) => bestPicture.includes(movie) || bestActorActress.includes(movie) || foreign.includes(movie) || runnerUps.includes(movie);
+            const isInOscarMovies = (movie) => {
+                return bestPictureWinners.includes(movie) || bestPictureNominees.includes(movie) ||
+                    bestDirector.includes(movie) || bestActor.includes(movie) || bestActress.includes(movie) ||
+                    bestOriginalScreenplay.includes(movie) || bestAdaptedScreenplay.includes(movie) ||
+                    bestCinematography.includes(movie) || bestFilmEditing.includes(movie) ||
+                    bestAnimatedFeature.includes(movie) || bestInternationalFeature.includes(movie) ||
+                    bestDocumentaryFeature.includes(movie);
+            };
+
             const getUnwatchedMovies = () => allMovies.filter(m => !state.watched.includes(m));
+            
             const getSuggestionPool = () => {
                 const unwatched = getUnwatchedMovies();
-                if (state.homeFilter === 'all') return unwatched;
-                if (state.homeFilter === 'wishlist') return unwatched.filter(m => state.wishlist.includes(m));
-                if (state.homeFilter === 'oscar') return unwatched.filter(m => isInOscarMovies(m));
+                if (state.wishlistOnly) {
+                    return unwatched.filter(m => state.wishlist.includes(m));
+                }
                 return unwatched;
             };
+
             const getOscarMovies = () => {
-                if (state.oscarFilter === 'all') return allMovies.filter(m => isInOscarMovies(m));
-                if (state.oscarFilter === 'best-picture') return bestPicture;
-                if (state.oscarFilter === 'best-actor') return bestActorActress;
-                if (state.oscarFilter === 'foreign') return foreign;
-                if (state.oscarFilter === 'runner-up') return runnerUps;
-                return [];
+                const oscarMovies = allMovies.filter(m => isInOscarMovies(m));
+                if (state.oscarFilter === 'all') return oscarMovies;
+                if (state.oscarFilter === 'best-picture') return bestPictureWinners;
+                if (state.oscarFilter === 'best-picture-nominee') return bestPictureNominees;
+                if (state.oscarFilter === 'best-director') return bestDirector;
+                if (state.oscarFilter === 'best-actor') return bestActor;
+                if (state.oscarFilter === 'best-actress') return bestActress;
+                if (state.oscarFilter === 'best-original-screenplay') return bestOriginalScreenplay;
+                if (state.oscarFilter === 'best-adapted-screenplay') return bestAdaptedScreenplay;
+                if (state.oscarFilter === 'best-cinematography') return bestCinematography;
+                if (state.oscarFilter === 'best-editing') return bestFilmEditing;
+                if (state.oscarFilter === 'best-animated') return bestAnimatedFeature;
+                if (state.oscarFilter === 'best-international') return bestInternationalFeature;
+                if (state.oscarFilter === 'best-documentary') return bestDocumentaryFeature;
+                return oscarMovies;
             };
 
             useEffect(() => {
@@ -153,8 +204,9 @@
                 const details = {};
                 const opts = {headers: {accept: 'application/json', Authorization: `Bearer ${TOKEN}`}};
                 try {
-                    for (let i = 0; i < allMovies.length; i += 5) {
-                        await Promise.all(allMovies.slice(i, i+5).map(async (movie) => {
+                    const batchSize = 5;
+                    for (let i = 0; i < allMovies.length; i += batchSize) {
+                        await Promise.all(allMovies.slice(i, i+batchSize).map(async (movie) => {
                             try {
                                 const searchRes = await fetch(`https://api.themoviedb.org/3/search/movie?query=${encodeURIComponent(movie)}&include_adult=false`, opts);
                                 const searchData = await searchRes.json();
@@ -174,6 +226,7 @@
                                 }
                             } catch(e) {}
                         }));
+                        setState(s => ({...s, loadingProgress: Math.round(((i + batchSize) / allMovies.length) * 100)}));
                     }
                     setState(s => ({...s, details, loading: false}));
                     setTimeout(() => generateSuggestions(), 100);
@@ -202,6 +255,11 @@
                 setState(s => ({...s, page: s.backTo || 'home', selectedMovie: null, backTo: null}));
             };
 
+            const toggleWishlistOnly = () => {
+                setState(s => ({...s, wishlistOnly: !s.wishlistOnly}));
+                setTimeout(() => generateSuggestions(), 100);
+            };
+
             // Touch handlers
             let touchStartX = 0;
             let touchEndX = 0;
@@ -219,16 +277,21 @@
                 }
             };
 
+            const getYear = (movie) => {
+                const detail = state.details[movie];
+                if (detail?.release_date) {
+                    return new Date(detail.release_date).getFullYear();
+                }
+                return null;
+            };
+
             const TallCard = ({movie, onClick}) => {
                 const detail = state.details[movie];
-                const cats = getCategories(movie);
                 const awards = getAwardsText(movie);
                 const isWatched = state.watched.includes(movie);
+                const year = getYear(movie);
                 
                 if (!detail) return <div className="bg-gray-800 rounded-lg overflow-hidden shadow-xl flex items-center justify-center" style={{height: '66vh'}}><p className="text-gray-400">Loading...</p></div>;
-                
-                const visibleCats = cats.slice(0, 3);
-                const moreCats = cats.length > 3 ? cats.length - 3 : 0;
                 
                 return (
                     <div className="bg-gray-800 rounded-lg overflow-hidden shadow-xl hover:shadow-2xl transition-all hover:scale-[1.02] relative" style={{height: '66vh'}}>
@@ -241,26 +304,15 @@
                                 </div>
                             )}
                             
-                            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/80 to-transparent" style={{top: '55%'}}></div>
+                            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/80 to-transparent" style={{top: '50%'}}></div>
                             
                             <div className="absolute bottom-0 left-0 right-0 p-4">
-                                <div className="flex flex-wrap gap-1.5 mb-3">
-                                    {visibleCats.map((cat, i) => (
-                                        <span key={i} className={`${cat.color} text-white px-2.5 py-1 rounded-full text-xs font-semibold shadow-lg`}>
-                                            {cat.label}
-                                        </span>
-                                    ))}
-                                    {moreCats > 0 && (
-                                        <span className="bg-gray-900 bg-opacity-80 text-white px-2.5 py-1 rounded-full text-xs font-semibold shadow-lg">
-                                            +{moreCats} more
-                                        </span>
-                                    )}
-                                </div>
+                                <h3 className="font-bold text-lg leading-tight mb-1 line-clamp-2 text-white">{detail.title}</h3>
                                 
-                                <h3 className="font-bold text-lg leading-tight mb-2 line-clamp-2 text-white">{detail.title}</h3>
+                                {year && <p className="text-sm text-gray-300 mb-2">{year}</p>}
                                 
                                 {awards && (
-                                    <p className="text-xs text-yellow-400 mb-2 truncate font-medium">{awards}</p>
+                                    <p className="text-xs text-yellow-400 mb-2 line-clamp-2 font-medium">{awards}</p>
                                 )}
                                 
                                 <div className="flex items-center gap-3 text-xs text-gray-300 mb-3">
@@ -274,12 +326,12 @@
                                 
                                 {detail.providers && (
                                     <div className="flex flex-wrap gap-1 text-xs mb-3">
-                                        {detail.providers.flatrate?.map((p, i) => (
+                                        {detail.providers.flatrate?.slice(0, 3).map((p, i) => (
                                             <span key={i} className="bg-gray-700 bg-opacity-80 px-2 py-0.5 rounded text-gray-200">
                                                 {p.provider_name}
                                             </span>
                                         ))}
-                                        {!detail.providers.flatrate?.length && detail.providers.rent?.map((p, i) => (
+                                        {!detail.providers.flatrate?.length && detail.providers.rent?.slice(0, 2).map((p, i) => (
                                             <span key={i} className="bg-gray-700 bg-opacity-80 px-2 py-0.5 rounded text-gray-200">
                                                 {p.provider_name}
                                             </span>
@@ -328,29 +380,24 @@
 
             const SmallCard = ({movie, onClick}) => {
                 const detail = state.details[movie];
-                const cats = getCategories(movie);
                 const awards = getAwardsText(movie);
+                const year = getYear(movie);
                 if (!detail) return <div className="bg-gray-800 rounded-lg overflow-hidden shadow-lg flex items-center justify-center aspect-[2/3]"><p className="text-gray-400 text-sm">Loading...</p></div>;
-                const visibleCats = cats.slice(0, 3);
-                const moreCats = cats.length > 3 ? cats.length - 3 : 0;
                 return (
                     <div onClick={onClick} className="bg-gray-800 rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-all hover:scale-105 cursor-pointer">
                         <div className="relative">
                             {detail.poster_path ? <img src={`https://image.tmdb.org/t/p/w300${detail.poster_path}`} alt={movie} className="w-full aspect-[2/3] object-cover"/> : <div className="w-full aspect-[2/3] bg-gray-700 flex items-center justify-center"><Film className="w-12 h-12 text-gray-500"/></div>}
-                            <div className="absolute top-2 left-2 right-2 flex flex-wrap gap-1">
-                                {visibleCats.map((cat, i) => <span key={i} className={`${cat.color} text-white px-2 py-0.5 rounded-full text-xs font-semibold shadow-md`}>{cat.label}</span>)}
-                                {moreCats > 0 && <span className="bg-gray-900 bg-opacity-80 text-white px-2 py-0.5 rounded-full text-xs font-semibold shadow-md">+{moreCats}</span>}
-                            </div>
                         </div>
                         <div className="p-3">
                             <h3 className="font-bold text-sm leading-tight mb-1 line-clamp-2">{detail.title}</h3>
-                            {awards && <p className="text-xs text-yellow-400 mb-1 truncate">{awards}</p>}
+                            {year && <p className="text-xs text-gray-400 mb-1">{year}</p>}
+                            {awards && <p className="text-xs text-yellow-400 mb-1 line-clamp-2">{awards}</p>}
                             <div className="flex items-center gap-2 text-xs text-gray-400 mb-1">
                                 {detail.runtime && <span>{detail.runtime} min</span>}
                             </div>
                             {detail.providers && <div className="flex flex-wrap gap-1">
-                                {detail.providers.flatrate?.map((p, i) => <span key={i} className="text-xs bg-gray-700 px-1.5 py-0.5 rounded text-gray-300 truncate">{p.provider_name}</span>)}
-                                {!detail.providers.flatrate?.length && detail.providers.rent?.map((p, i) => <span key={i} className="text-xs bg-gray-700 px-1.5 py-0.5 rounded text-gray-300 truncate">{p.provider_name}</span>)}
+                                {detail.providers.flatrate?.slice(0, 2).map((p, i) => <span key={i} className="text-xs bg-gray-700 px-1.5 py-0.5 rounded text-gray-300 truncate">{p.provider_name}</span>)}
+                                {!detail.providers.flatrate?.length && detail.providers.rent?.slice(0, 1).map((p, i) => <span key={i} className="text-xs bg-gray-700 px-1.5 py-0.5 rounded text-gray-300 truncate">{p.provider_name}</span>)}
                             </div>}
                         </div>
                     </div>
@@ -359,9 +406,9 @@
 
             const DetailPage = ({movie}) => {
                 const detail = state.details[movie];
-                const cats = getCategories(movie);
                 const awards = getAwardsText(movie);
                 const isWatched = state.watched.includes(movie);
+                const year = getYear(movie);
                 if (!detail) return null;
                 
                 const googleSearchUrl = `https://www.google.com/search?q=${encodeURIComponent(detail.title + ' movie')}`;
@@ -400,18 +447,8 @@
                                             <ExternalLink className="w-5 h-5 text-gray-400 group-hover:text-blue-400"/>
                                         </a>
                                         
-                                        {detail.release_date && (
-                                            <p className="text-gray-400 mb-4">{new Date(detail.release_date).getFullYear()}</p>
-                                        )}
-                                        
-                                        {cats.length > 0 && (
-                                            <div className="flex flex-wrap gap-2 mb-4">
-                                                {cats.map((cat, i) => (
-                                                    <span key={i} className={`${cat.color} text-white px-3 py-1 rounded-full text-sm font-semibold`}>
-                                                        {cat.label}
-                                                    </span>
-                                                ))}
-                                            </div>
+                                        {year && (
+                                            <p className="text-gray-400 mb-4">{year}</p>
                                         )}
                                         
                                         {awards && (
@@ -531,14 +568,32 @@
                                 <div className="w-24 h-36 md:w-32 md:h-48 bg-gray-800 rounded-lg card-shuffle-3 shadow-xl"></div>
                             </div>
                             <Film className="w-16 h-16 text-blue-400 mx-auto mb-6"/>
-                            <p key={state.loadingMsgKey} className="text-2xl font-light loading-text-animated">{state.loadingMsg}</p>
+                            <p key={state.loadingMsgKey} className="text-2xl font-light loading-text-animated mb-4">{state.loadingMsg}</p>
+                            <div className="w-64 mx-auto bg-gray-700 rounded-full h-2 mb-2">
+                                <div className="bg-blue-500 h-2 rounded-full transition-all duration-300" style={{width: `${state.loadingProgress}%`}}></div>
+                            </div>
+                            <p className="text-sm text-gray-400">{state.loadingProgress}% ({allMovies.length} movies)</p>
                         </div>
                     </div>
                 );
             }
 
             if (state.page === 'detail' && state.selectedMovie) {
-                return <DetailPage movie={state.selectedMovie} />;
+                return (
+                    <>
+                        <DetailPage movie={state.selectedMovie} />
+                        {state.trailer && (
+                            <div className="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-50 p-4" onClick={() => setState(s => ({...s, trailer: null}))}>
+                                <div className="relative w-full max-w-5xl" onClick={(e) => e.stopPropagation()}>
+                                    <button onClick={() => setState(s => ({...s, trailer: null}))} className="absolute -top-12 right-0 text-white hover:text-gray-300 transition"><X className="w-8 h-8"/></button>
+                                    <div className="relative pt-[56.25%]">
+                                        <iframe className="absolute inset-0 w-full h-full rounded-lg" src={`https://www.youtube.com/embed/${state.trailer}?autoplay=1`} title="Trailer" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen></iframe>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </>
+                );
             }
 
             return (
@@ -546,7 +601,7 @@
                     <header className="bg-black bg-opacity-50 shadow-lg backdrop-blur sticky top-0 z-40">
                         <div className="max-w-7xl mx-auto px-4 py-4">
                             <div className="flex items-center justify-between gap-4">
-                                <div onClick={() => { setState(s => ({...s, page: 'home', selectedMovie: null, backTo: null})); }} className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition">
+                                <div onClick={() => { setState(s => ({...s, page: 'home', selectedMovie: null, backTo: null, wishlistOnly: false})); setTimeout(generateSuggestions, 100); }} className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition">
                                     <Film className="w-7 h-7 text-blue-400"/>
                                     <h1 className="text-xl md:text-2xl font-bold">MoviePicker</h1>
                                 </div>
@@ -562,26 +617,18 @@
                     <main className="max-w-7xl mx-auto px-4 py-8">
                         {state.page === 'home' && (
                             <div>
-                                <div className="mb-6">
-                                    <p className="text-sm text-gray-400 mb-2">Filter suggestions</p>
-                                    <div className="flex items-center justify-between flex-wrap gap-3">
-                                        <div className="flex gap-2 flex-wrap">
-                                            <button onClick={() => { setState(s => ({...s, homeFilter: 'all'})); setTimeout(generateSuggestions, 100); }} className={`px-3 md:px-4 py-2 rounded-lg transition font-medium text-xs md:text-sm ${state.homeFilter === 'all' ? 'bg-blue-600' : 'bg-gray-800 hover:bg-gray-700'}`}>All</button>
-                                            <button onClick={() => { setState(s => ({...s, homeFilter: 'wishlist'})); setTimeout(generateSuggestions, 100); }} className={`px-3 md:px-4 py-2 rounded-lg transition font-medium text-xs md:text-sm ${state.homeFilter === 'wishlist' ? 'bg-purple-600' : 'bg-gray-800 hover:bg-gray-700'}`}>Wish list</button>
-                                            <button onClick={() => { setState(s => ({...s, homeFilter: 'oscar'})); setTimeout(generateSuggestions, 100); }} className={`px-3 md:px-4 py-2 rounded-lg transition font-medium text-xs md:text-sm ${state.homeFilter === 'oscar' ? 'bg-yellow-600' : 'bg-gray-800 hover:bg-gray-700'}`}>Oscar movies</button>
-                                        </div>
-                                        <button onClick={generateSuggestions} className="flex items-center gap-2 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 px-4 md:px-5 py-2 rounded-lg transition shadow-lg font-medium text-xs md:text-sm">
-                                            <RefreshCw className="w-4 h-4"/>Refresh picks
-                                        </button>
-                                    </div>
+                                <div className="mb-6 flex justify-end">
+                                    <button onClick={generateSuggestions} className="flex items-center gap-2 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 px-4 md:px-5 py-2 rounded-lg transition shadow-lg font-medium text-xs md:text-sm">
+                                        <RefreshCw className="w-4 h-4"/>Refresh picks
+                                    </button>
                                 </div>
 
                                 {state.suggestions.length === 0 ? (
-                                    <div className="text-center py-20"><Film className="w-20 h-20 text-gray-600 mx-auto mb-4"/><h2 className="text-2xl font-semibold mb-2">No unwatched movies</h2><p className="text-gray-400">{state.homeFilter === 'all' && "You've watched everything!"}{state.homeFilter === 'wishlist' && "You've watched all wishlist movies!"}{state.homeFilter === 'oscar' && "You've watched all Oscar movies!"}</p></div>
+                                    <div className="text-center py-20"><Film className="w-20 h-20 text-gray-600 mx-auto mb-4"/><h2 className="text-2xl font-semibold mb-2">No unwatched movies</h2><p className="text-gray-400">{state.wishlistOnly ? "You've watched all wishlist movies!" : "You've watched everything!"}</p></div>
                                 ) : (
                                     <div className="relative">
-                                        {state.carouselIndex > 0 && <button onClick={() => setState(s => ({...s, carouselIndex: s.carouselIndex - 1}))} className="hidden lg:block absolute left-0 top-1/2 -translate-y-1/2 -translate-x-16 z-10 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg transition"><ChevronLeft className="w-6 h-6"/></button>}
-                                        {state.carouselIndex < state.suggestions.length - 1 && <button onClick={() => setState(s => ({...s, carouselIndex: s.carouselIndex + 1}))} className="hidden lg:block absolute right-0 top-1/2 -translate-y-1/2 translate-x-16 z-10 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg transition"><ChevronRight className="w-6 h-6"/></button>}
+                                        {state.carouselIndex > 0 && <button onClick={() => setState(s => ({...s, carouselIndex: Math.max(0, s.carouselIndex - 1)}))} className="hidden lg:block absolute left-0 top-1/2 -translate-y-1/2 -translate-x-16 z-10 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg transition"><ChevronLeft className="w-6 h-6"/></button>}
+                                        {state.carouselIndex < state.suggestions.length - 1 && <button onClick={() => setState(s => ({...s, carouselIndex: Math.min(s.suggestions.length - 1, s.carouselIndex + 1)}))} className="hidden lg:block absolute right-0 top-1/2 -translate-y-1/2 translate-x-16 z-10 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg transition"><ChevronRight className="w-6 h-6"/></button>}
                                         <div className="overflow-hidden" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
                                             <div className="flex gap-6 transition-transform duration-500 ease-out" style={{transform: `translateX(calc(-${state.carouselIndex * 100}% - ${state.carouselIndex * 24}px))`}}>
                                                 {state.suggestions.map((movie, i) => <div key={i} className="flex-shrink-0 w-full max-w-md mx-auto"><TallCard movie={movie} onClick={() => openDetail(movie, 'home')}/></div>)}
@@ -590,12 +637,26 @@
                                         <div className="flex justify-center gap-2 mt-6">{state.suggestions.map((_, i) => <button key={i} onClick={() => setState(s => ({...s, carouselIndex: i}))} className={`h-2 rounded-full transition-all ${state.carouselIndex === i ? 'bg-pink-500 w-8' : 'bg-gray-600 w-2'}`}/>)}</div>
                                     </div>
                                 )}
+                                
+                                {/* Wishlist toggle */}
+                                <div className="mt-8 flex items-center gap-3">
+                                    <button
+                                        onClick={toggleWishlistOnly}
+                                        className={`relative w-12 h-6 rounded-full transition-colors duration-300 ${state.wishlistOnly ? 'bg-purple-600' : 'bg-gray-600'}`}
+                                    >
+                                        <div className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform duration-300 ${state.wishlistOnly ? 'translate-x-6' : 'translate-x-0'}`}></div>
+                                    </button>
+                                    <span className="text-sm text-gray-300">Wish list only</span>
+                                </div>
                             </div>
                         )}
 
                         {state.page === 'wishlist' && (
                             <div>
-                                <h2 className="text-2xl md:text-3xl font-bold mb-6">My Wish list</h2>
+                                <div className="flex items-center justify-between mb-6">
+                                    <h2 className="text-2xl md:text-3xl font-bold">My Wish list</h2>
+                                    <span className="text-gray-400">{state.wishlist.filter(m => !state.watched.includes(m)).length} movies</span>
+                                </div>
                                 {state.wishlist.filter(m => !state.watched.includes(m)).length === 0 ? (
                                     <div className="text-center py-20"><h3 className="text-xl font-semibold mb-2">No unwatched wishlist movies</h3></div>
                                 ) : (
@@ -608,13 +669,24 @@
 
                         {state.page === 'oscar' && (
                             <div>
-                                <h2 className="text-2xl md:text-3xl font-bold mb-4">Oscar Movies</h2>
+                                <div className="flex items-center justify-between mb-4">
+                                    <h2 className="text-2xl md:text-3xl font-bold">Oscar Movies</h2>
+                                    <span className="text-gray-400">{getOscarMovies().filter(m => !state.watched.includes(m)).length} movies</span>
+                                </div>
                                 <div className="flex flex-wrap gap-2 mb-6">
                                     <button onClick={() => setState(s => ({...s, oscarFilter: 'all'}))} className={`px-3 md:px-4 py-2 rounded-lg transition font-medium text-xs md:text-sm ${state.oscarFilter === 'all' ? 'bg-yellow-600' : 'bg-gray-800 hover:bg-gray-700'}`}>All</button>
                                     <button onClick={() => setState(s => ({...s, oscarFilter: 'best-picture'}))} className={`px-3 md:px-4 py-2 rounded-lg transition font-medium text-xs md:text-sm ${state.oscarFilter === 'best-picture' ? 'bg-yellow-500' : 'bg-gray-800 hover:bg-gray-700'}`}>Best Picture</button>
-                                    <button onClick={() => setState(s => ({...s, oscarFilter: 'best-actor'}))} className={`px-3 md:px-4 py-2 rounded-lg transition font-medium text-xs md:text-sm ${state.oscarFilter === 'best-actor' ? 'bg-yellow-600' : 'bg-gray-800 hover:bg-gray-700'}`}>Best Actor/Actress</button>
-                                    <button onClick={() => setState(s => ({...s, oscarFilter: 'foreign'}))} className={`px-3 md:px-4 py-2 rounded-lg transition font-medium text-xs md:text-sm ${state.oscarFilter === 'foreign' ? 'bg-green-600' : 'bg-gray-800 hover:bg-gray-700'}`}>Foreign Language</button>
-                                    <button onClick={() => setState(s => ({...s, oscarFilter: 'runner-up'}))} className={`px-3 md:px-4 py-2 rounded-lg transition font-medium text-xs md:text-sm ${state.oscarFilter === 'runner-up' ? 'bg-blue-600' : 'bg-gray-800 hover:bg-gray-700'}`}>Nominated</button>
+                                    <button onClick={() => setState(s => ({...s, oscarFilter: 'best-picture-nominee'}))} className={`px-3 md:px-4 py-2 rounded-lg transition font-medium text-xs md:text-sm ${state.oscarFilter === 'best-picture-nominee' ? 'bg-yellow-500' : 'bg-gray-800 hover:bg-gray-700'}`}>Best Picture Nominee</button>
+                                    <button onClick={() => setState(s => ({...s, oscarFilter: 'best-director'}))} className={`px-3 md:px-4 py-2 rounded-lg transition font-medium text-xs md:text-sm ${state.oscarFilter === 'best-director' ? 'bg-yellow-500' : 'bg-gray-800 hover:bg-gray-700'}`}>Best Director</button>
+                                    <button onClick={() => setState(s => ({...s, oscarFilter: 'best-actor'}))} className={`px-3 md:px-4 py-2 rounded-lg transition font-medium text-xs md:text-sm ${state.oscarFilter === 'best-actor' ? 'bg-yellow-600' : 'bg-gray-800 hover:bg-gray-700'}`}>Best Actor</button>
+                                    <button onClick={() => setState(s => ({...s, oscarFilter: 'best-actress'}))} className={`px-3 md:px-4 py-2 rounded-lg transition font-medium text-xs md:text-sm ${state.oscarFilter === 'best-actress' ? 'bg-yellow-600' : 'bg-gray-800 hover:bg-gray-700'}`}>Best Actress</button>
+                                    <button onClick={() => setState(s => ({...s, oscarFilter: 'best-original-screenplay'}))} className={`px-3 md:px-4 py-2 rounded-lg transition font-medium text-xs md:text-sm ${state.oscarFilter === 'best-original-screenplay' ? 'bg-yellow-500' : 'bg-gray-800 hover:bg-gray-700'}`}>Original Screenplay</button>
+                                    <button onClick={() => setState(s => ({...s, oscarFilter: 'best-adapted-screenplay'}))} className={`px-3 md:px-4 py-2 rounded-lg transition font-medium text-xs md:text-sm ${state.oscarFilter === 'best-adapted-screenplay' ? 'bg-yellow-500' : 'bg-gray-800 hover:bg-gray-700'}`}>Adapted Screenplay</button>
+                                    <button onClick={() => setState(s => ({...s, oscarFilter: 'best-cinematography'}))} className={`px-3 md:px-4 py-2 rounded-lg transition font-medium text-xs md:text-sm ${state.oscarFilter === 'best-cinematography' ? 'bg-yellow-500' : 'bg-gray-800 hover:bg-gray-700'}`}>Cinematography</button>
+                                    <button onClick={() => setState(s => ({...s, oscarFilter: 'best-editing'}))} className={`px-3 md:px-4 py-2 rounded-lg transition font-medium text-xs md:text-sm ${state.oscarFilter === 'best-editing' ? 'bg-yellow-500' : 'bg-gray-800 hover:bg-gray-700'}`}>Film Editing</button>
+                                    <button onClick={() => setState(s => ({...s, oscarFilter: 'best-animated'}))} className={`px-3 md:px-4 py-2 rounded-lg transition font-medium text-xs md:text-sm ${state.oscarFilter === 'best-animated' ? 'bg-green-600' : 'bg-gray-800 hover:bg-gray-700'}`}>Animated Feature</button>
+                                    <button onClick={() => setState(s => ({...s, oscarFilter: 'best-international'}))} className={`px-3 md:px-4 py-2 rounded-lg transition font-medium text-xs md:text-sm ${state.oscarFilter === 'best-international' ? 'bg-green-600' : 'bg-gray-800 hover:bg-gray-700'}`}>International Feature</button>
+                                    <button onClick={() => setState(s => ({...s, oscarFilter: 'best-documentary'}))} className={`px-3 md:px-4 py-2 rounded-lg transition font-medium text-xs md:text-sm ${state.oscarFilter === 'best-documentary' ? 'bg-blue-600' : 'bg-gray-800 hover:bg-gray-700'}`}>Documentary</button>
                                 </div>
                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                                     {getOscarMovies().filter(m => !state.watched.includes(m)).sort((a, b) => {
@@ -628,7 +700,10 @@
 
                         {state.page === 'watched' && (
                             <div>
-                                <h2 className="text-2xl md:text-3xl font-bold mb-6">Watched Movies</h2>
+                                <div className="flex items-center justify-between mb-6">
+                                    <h2 className="text-2xl md:text-3xl font-bold">Watched Movies</h2>
+                                    <span className="text-gray-400">{state.watched.length} movies</span>
+                                </div>
                                 {state.watched.length === 0 ? (
                                     <div className="text-center py-20"><h3 className="text-xl font-semibold mb-2">No watched movies yet</h3></div>
                                 ) : (
