@@ -395,7 +395,7 @@
                 const year = getYear(movie);
                 
                 if (!detail) return (
-                    <div className="bg-gray-800 rounded-lg overflow-hidden shadow-xl flex items-center justify-center" style={{height: '70vh'}}>
+                    <div className="bg-gray-800 rounded-lg overflow-hidden shadow-xl flex items-center justify-center" style={{height: '66vh'}}>
                         <div className="text-center">
                             <Film className="w-12 h-12 text-gray-600 mx-auto mb-2"/>
                             <p className="text-gray-400">Loading...</p>
@@ -404,23 +404,23 @@
                 );
                 
                 return (
-                    <div className="bg-gray-800 rounded-lg overflow-hidden shadow-xl hover:shadow-2xl transition-all relative" style={{height: '70vh'}}>
-                        <div className="relative h-full flex flex-col" onClick={onClick}>
-                            <div className="flex-1 relative overflow-hidden">
-                                {detail.poster_path ? (
-                                    <img 
-                                        src={`https://image.tmdb.org/t/p/w500${detail.poster_path}`} 
-                                        alt={movie} 
-                                        className="w-full h-full object-contain bg-gray-900"
-                                    />
-                                ) : (
-                                    <div className="w-full h-full bg-gray-700 flex items-center justify-center">
-                                        <Film className="w-16 h-16 text-gray-500"/>
-                                    </div>
-                                )}
-                            </div>
+                    <div className="bg-gray-800 rounded-lg overflow-hidden shadow-xl hover:shadow-2xl transition-all hover:scale-[1.02] relative" style={{height: '66vh'}}>
+                            <div className="relative h-full" onClick={onClick}>
+                            {detail.poster_path ? (
+                                <img 
+                                    src={`https://image.tmdb.org/t/p/w500${detail.poster_path}`} 
+                                    alt={movie} 
+                                    className="w-full h-full object-cover object-top"
+                                />
+                            ) : (
+                                <div className="w-full h-full bg-gray-700 flex items-center justify-center">
+                                    <Film className="w-16 h-16 text-gray-500"/>
+                                </div>
+                            )}
                             
-                            <div className="bg-gradient-to-t from-black via-black to-black/80 p-4">
+                            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/80 to-transparent" style={{top: '50%'}}></div>
+                            
+                            <div className="absolute bottom-0 left-0 right-0 p-4">
                                 <h3 className="font-bold text-lg leading-tight mb-1 line-clamp-2 text-white">{detail.title}</h3>
                                 
                                 {year && <p className="text-sm text-gray-300 mb-2">{year}</p>}
