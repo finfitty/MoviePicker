@@ -53,19 +53,19 @@
          * Key Terms and Definitions:
          * 
          * - RECOMMENDATIONS: The main home screen where users swipe through movie suggestions.
-         *   Movies shown are based on filters (all movies or wishlist-only) and exclude watched movies.
+         *   Movies shown are based on filters (all movies or watchlist-only) and exclude watched movies.
          * 
          * - SHUFFLE: Action that randomizes the order of movie recommendations. Located in sticky
          *   control bar. Generates a new random order of unwatched movies.
          * 
-         * - WISHLIST: A user-curated list of movies they want to watch. Users can add/remove movies
+         * - WATCHLIST: A user-curated list of movies they want to watch. Users can add/remove movies
          *   from this list. Stored in localStorage. When a movie is marked as watched, it's removed
-         *   from the wishlist.
+         *   from the watchlist.
          * 
          * - WATCHED: Movies the user has already seen. Marked via the "Watched" button. Stored in
          *   localStorage with timestamp. Watched movies are excluded from recommendations.
          * 
-         * - LIST: Generic term for any collection of movies (Wishlist, Oscar Movies, Watched).
+         * - LIST: Generic term for any collection of movies (Watchlist, Oscar Movies, Watched).
          *   Displayed in grid view. Clicking a movie in a list takes you to detail view with
          *   back-to-list navigation.
          * 
@@ -81,12 +81,11 @@
          * - TMDB (The Movie Database): External API used to fetch movie details including posters,
          *   cast, crew, trailers, ratings, and streaming availability.
          * 
-         * - ADD TO WATCHLIST: Action represented by a bookmark ribbon icon with plus sign in the
-         *   top-right corner of movie posters AND as a labeled button below streaming providers.
-         *   Toggles a movie's presence in the user's watchlist. The bookmark fills with zinc-700
-         *   color and shows a checkmark when the movie is in the watchlist. Wishlist changes persist
-         *   in localStorage. Icon changes: bookmark+plus → filled bookmark+check. Button changes:
-         *   "+ Add to Watchlist" → "✓ In Watchlist" with zinc-700 background.
+         * - ADD TO WATCHLIST: Action represented by a plus-in-circle icon in the top-right corner
+         *   of movie posters AND as a labeled button above trailer/watched buttons. Toggles a movie's
+         *   presence in the user's watchlist. The icon changes to check-in-circle with zinc-700 background
+         *   when in watchlist. Watchlist changes persist in localStorage. Icon: plus-circle → check-circle.
+         *   Button: "+ Add to watchlist" → "✓ In watchlist" with zinc-700/800 background.
          */
         
         const { useState, useEffect, useRef, useCallback } = React;
@@ -102,17 +101,17 @@
         const Eye = ({className}) => <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>;
         const Check = ({className}) => <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="20 6 9 17 4 12"/></svg>;
         const Menu = ({className}) => <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>;
-        const BookmarkPlus = ({className}) => (
-            <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
-                <line x1="12" y1="7" x2="12" y2="13"/>
-                <line x1="9" y1="10" x2="15" y2="10"/>
+        const PlusCircle = ({className}) => (
+            <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="12" y1="7" x2="12" y2="17" strokeWidth="3"/>
+                <line x1="7" y1="12" x2="17" y2="12" strokeWidth="3"/>
             </svg>
         );
-        const BookmarkCheck = ({className}) => (
+        const CheckCircle = ({className}) => (
             <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2">
-                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
-                <polyline points="9 11 11 13 15 9" fill="none"/>
+                <circle cx="12" cy="12" r="10"/>
+                <polyline points="8 12 11 15 16 9" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
         );
         const Plus = ({className}) => <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>;
@@ -131,8 +130,8 @@
         const bestInternationalFeature = ["Investigation of a Citizen Above Suspicion","The Garden of the Finzi-Continis","The Discreet Charm of the Bourgeoisie","Day for Night","Amarcord","Dersu Uzala","Black and White in Color","Madame Rosa","Get Out Your Handkerchiefs","The Tin Drum","Moscow Does Not Believe in Tears","Mephisto","Volver a Empezar","Fanny and Alexander","Dangerous Moves","The Official Story","The Assault","Babette's Feast","Pelle the Conqueror","Cinema Paradiso","Journey of Hope","Mediterraneo","Indochine","Belle Époque","Burnt by the Sun","Antonia's Line","Kolya","Character","Life Is Beautiful","All About My Mother","Crouching Tiger, Hidden Dragon","No Man's Land","Nowhere in Africa","The Barbarian Invasions","The Sea Inside","Tsotsi","The Lives of Others","The Counterfeiters","Departures","The Secret in Their Eyes","In a Better World","A Separation","Amour","The Great Beauty","Ida","Son of Saul","The Salesman","A Fantastic Woman","Roma","Parasite","Another Round","Drive My Car","All Quiet on the Western Front","The Zone of Interest"];
         const bestDocumentaryFeature = ["Woodstock","The Hellstrom Chronicle","Marjoe","The Great American Cowboy","Hearts and Minds","The Man Who Skied Down Everest","Harlan County U.S.A.","Who Are the DeBolts? And Where Did They Get Nineteen Kids?","Scared Straight!","Best Boy","From Mao to Mozart: Isaac Stern in China","Genocide","Just Another Missing Kid","He Makes Me Feel Like Dancin'","The Times of Harvey Milk","Broken Rainbow","Artie Shaw: Time Is All You've Got","The Ten-Year Lunch: The Wit and Legend of the Algonquin Round Table","Hotel Terminus: The Life and Times of Klaus Barbie","Common Threads: Stories from the Quilt","American Dream","In the Shadow of the Stars","The Panama Deception","I Am a Promise: The Children of Stanton Elementary School","Maya Lin: A Strong Clear Vision","Anne Frank Remembered","When We Were Kings","The Long Way Home","The Last Days","One Day in September","Into the Arms of Strangers: Stories of the Kindertransport","Murder on a Sunday Morning","Bowling for Columbine","The Fog of War","Born into Brothels","March of the Penguins","An Inconvenient Truth","Taxi to the Dark Side","Man on Wire","The Cove","Inside Job","Undefeated","Searching for Sugar Man","20 Feet from Stardom","Citizenfour","Amy","O.J.: Made in America","Icarus","Free Solo","American Factory","My Octopus Teacher","Summer of Soul","Navalny","20 Days in Mariupol"];
 
-        // Default wishlist - will be overridden by localStorage
-        const DEFAULT_WISHLIST = ["Scarface","Boogie Nights","Fargo","Raising Arizona","Norma Rae","My Life as a Dog","A River Runs Through It","Erin Brockovich","What's Eating Gilbert Grape","American Graffiti","Chinatown","One Flew Over the Cuckoo's Nest","Taxi Driver","Juno","Chariots of Fire","Psycho","Fried Green Tomatoes","Brokeback Mountain","Walk the Line"];
+        // Default watchlist - will be overridden by localStorage
+        const DEFAULT_WATCHLIST = ["Scarface","Boogie Nights","Fargo","Raising Arizona","Norma Rae","My Life as a Dog","A River Runs Through It","Erin Brockovich","What's Eating Gilbert Grape","American Graffiti","Chinatown","One Flew Over the Cuckoo's Nest","Taxi Driver","Juno","Chariots of Fire","Psycho","Fried Green Tomatoes","Brokeback Mountain","Walk the Line"];
 
         function MoviePicker() {
             const [state, setState] = useState({
@@ -149,8 +148,8 @@
                 trailer: null,
                 watched: JSON.parse(localStorage.getItem('moviepicker_watched') || '[]'),
                 watchedDates: JSON.parse(localStorage.getItem('moviepicker_watched_dates') || '{}'),
-                wishlist: JSON.parse(localStorage.getItem('moviepicker_wishlist') || JSON.stringify(DEFAULT_WISHLIST)),
-                wishlistOnly: false,
+                watchlist: JSON.parse(localStorage.getItem('moviepicker_watchlist') || JSON.stringify(DEFAULT_WATCHLIST)),
+                watchlistOnly: false,
                 fromList: false, // Track if we came from a list page
                 returnToList: null, // Store which list to return to
             });
@@ -159,27 +158,27 @@
             const touchStartX = useRef(0);
             const touchStartY = useRef(0);
 
-            const allMovies = [...new Set([...state.wishlist,...bestPictureWinners,...bestPictureNominees,...bestDirector,...bestActor,...bestActress,...bestOriginalScreenplay,...bestAdaptedScreenplay,...bestCinematography,...bestFilmEditing,...bestAnimatedFeature,...bestInternationalFeature,...bestDocumentaryFeature])];
+            const allMovies = [...new Set([...state.watchlist,...bestPictureWinners,...bestPictureNominees,...bestDirector,...bestActor,...bestActress,...bestOriginalScreenplay,...bestAdaptedScreenplay,...bestCinematography,...bestFilmEditing,...bestAnimatedFeature,...bestInternationalFeature,...bestDocumentaryFeature])];
 
-            // Save to localStorage when watched/wishlist changes
+            // Save to localStorage when watched/watchlist changes
             useEffect(() => {
                 localStorage.setItem('moviepicker_watched', JSON.stringify(state.watched));
                 localStorage.setItem('moviepicker_watched_dates', JSON.stringify(state.watchedDates));
             }, [state.watched, state.watchedDates]);
 
             useEffect(() => {
-                localStorage.setItem('moviepicker_wishlist', JSON.stringify(state.wishlist));
-            }, [state.wishlist]);
+                localStorage.setItem('moviepicker_watchlist', JSON.stringify(state.watchlist));
+            }, [state.watchlist]);
 
             const getUnwatchedMovies = useCallback(() => allMovies.filter(m => !state.watched.includes(m)), [state.watched, allMovies]);
             const getFilteredMovies = useCallback(() => {
                 const unwatched = getUnwatchedMovies();
-                return state.wishlistOnly ? unwatched.filter(m => state.wishlist.includes(m)) : unwatched;
-            }, [state.wishlistOnly, state.watched, state.wishlist]);
+                return state.watchlistOnly ? unwatched.filter(m => state.watchlist.includes(m)) : unwatched;
+            }, [state.watchlistOnly, state.watched, state.watchlist]);
 
             const getCategories = (movie) => {
                 const cats = [];
-                if (state.wishlist.includes(movie)) cats.push('Wishlist');
+                if (state.watchlist.includes(movie)) cats.push('Watchlist');
                 if (bestPictureWinners.includes(movie)) cats.push('Best Picture');
                 if (bestDirector.includes(movie) && !bestPictureWinners.includes(movie)) cats.push('Best Director');
                 if (bestActor.includes(movie)) cats.push('Best Actor');
@@ -282,23 +281,23 @@
                 fetchMovieBatch(shuffled.slice(0, 5));
             };
             
-            const toggleWishlistOnly = () => {
-                const newWishlistOnly = !state.wishlistOnly;
-                const filtered = newWishlistOnly ? getUnwatchedMovies().filter(m => state.wishlist.includes(m)) : getUnwatchedMovies();
+            const toggleWatchlistOnly = () => {
+                const newWatchlistOnly = !state.watchlistOnly;
+                const filtered = newWatchlistOnly ? getUnwatchedMovies().filter(m => state.watchlist.includes(m)) : getUnwatchedMovies();
                 const shuffled = [...filtered].sort(() => Math.random() - 0.5);
-                setState(s => ({...s, wishlistOnly: newWishlistOnly, shuffledMovies: shuffled, currentIndex: 0}));
+                setState(s => ({...s, watchlistOnly: newWatchlistOnly, shuffledMovies: shuffled, currentIndex: 0}));
                 fetchMovieBatch(shuffled.slice(0, 5));
             };
             
             const markAsWatched = (movie) => {
                 const newWatched = [...state.watched, movie];
-                const newWishlist = state.wishlist.filter(m => m !== movie); // Remove from wishlist when watched
+                const newWatchlist = state.watchlist.filter(m => m !== movie); // Remove from watchlist when watched
                 const newShuffled = state.shuffledMovies.filter(m => m !== movie);
                 setState(s => ({
                     ...s,
                     watched: newWatched,
                     watchedDates: {...s.watchedDates, [movie]: new Date().toISOString()},
-                    wishlist: newWishlist,
+                    watchlist: newWatchlist,
                     shuffledMovies: newShuffled,
                     currentIndex: Math.min(Math.max(0, s.currentIndex), newShuffled.length - 1)
                 }));
@@ -312,12 +311,12 @@
                 }));
             };
             
-            const toggleWishlist = (movie) => {
-                const isInWishlist = state.wishlist.includes(movie);
-                const newWishlist = isInWishlist 
-                    ? state.wishlist.filter(m => m !== movie)
-                    : [...state.wishlist, movie];
-                setState(s => ({...s, wishlist: newWishlist}));
+            const toggleWatchlist = (movie) => {
+                const isInWatchlist = state.watchlist.includes(movie);
+                const newWatchlist = isInWatchlist 
+                    ? state.watchlist.filter(m => m !== movie)
+                    : [...state.watchlist, movie];
+                setState(s => ({...s, watchlist: newWatchlist}));
             };
             
             const getYear = (movie) => { const d = state.details[movie]; return d?.release_date ? new Date(d.release_date).getFullYear() : null; };
@@ -326,7 +325,7 @@
                 const detail = state.details[movie];
                 const categories = getCategories(movie);
                 const isWatched = state.watched.includes(movie);
-                const isInWishlist = state.wishlist.includes(movie);
+                const isInWatchlist = state.watchlist.includes(movie);
                 const year = getYear(movie);
                 
                 if (!detail) return (
@@ -355,20 +354,20 @@
                                 </div>
                             )}
                             
-                            {/* Wishlist bookmark button - top right */}
+                            {/* Watchlist button - top right */}
                             <button
-                                onClick={() => toggleWishlist(movie)}
-                                className={`absolute top-3 right-3 p-2 rounded-full transition ${
-                                    isInWishlist 
-                                        ? 'bg-zinc-700 hover:bg-zinc-600' 
-                                        : 'bg-black/60 hover:bg-black/80'
+                                onClick={() => toggleWatchlist(movie)}
+                                className={`absolute top-3 right-3 p-2.5 rounded-lg transition shadow-lg ${
+                                    isInWatchlist 
+                                        ? 'bg-blue-600 hover:bg-blue-700' 
+                                        : 'bg-black/70 hover:bg-black/85 border border-white/20'
                                 }`}
-                                title={isInWishlist ? "Remove from watchlist" : "Add to watchlist"}
+                                title={isInWatchlist ? "Remove from watchlist" : "Add to watchlist"}
                             >
-                                {isInWishlist ? (
-                                    <BookmarkCheck className="w-5 h-5 text-white"/>
+                                {isInWatchlist ? (
+                                    <CheckCircle className="w-6 h-6 text-white"/>
                                 ) : (
-                                    <BookmarkPlus className="w-5 h-5 text-white"/>
+                                    <PlusCircle className="w-6 h-6 text-white"/>
                                 )}
                             </button>
                         </div>
@@ -428,51 +427,63 @@
                         
                         {/* Action buttons */}
                         <div className="space-y-3 mb-6">
-                            {/* Trailer button - only show if trailer exists */}
+                            {/* Trailer button - full width if present */}
                             {detail.trailer && (
                                 <button 
                                     onClick={() => setState(s => ({...s, trailer: detail.trailer}))} 
                                     className="w-full flex items-center justify-center gap-2 bg-rose-600 hover:bg-rose-700 text-white py-3 rounded-lg font-medium transition"
                                 >
                                     <Play className="w-5 h-5"/>
-                                    Watch Trailer
+                                    Watch trailer
                                 </button>
                             )}
                             
-                            {/* Watchlist button */}
-                            <button 
-                                onClick={() => toggleWishlist(movie)} 
-                                className={`w-full flex items-center justify-center gap-2 py-3 rounded-lg font-medium transition border ${
-                                    isInWishlist 
-                                        ? 'bg-zinc-700 border-zinc-700 text-white hover:bg-zinc-600 hover:border-zinc-600' 
-                                        : 'bg-transparent border-zinc-600 text-zinc-300 hover:border-zinc-500 hover:bg-zinc-800/50'
-                                }`}
-                            >
-                                {isInWishlist ? (
-                                    <>
-                                        <Check className="w-5 h-5"/>
-                                        In Watchlist
-                                    </>
-                                ) : (
-                                    <>
-                                        <Plus className="w-5 h-5"/>
-                                        Add to Watchlist
-                                    </>
-                                )}
-                            </button>
-                            
-                            {/* Watched button */}
-                            <button 
-                                onClick={() => isWatched ? unmarkAsWatched(movie) : markAsWatched(movie)} 
-                                className={`w-full flex items-center justify-center gap-2 py-3 rounded-lg font-medium transition border ${
-                                    isWatched 
-                                        ? 'bg-emerald-600 border-emerald-600 text-white' 
-                                        : 'bg-transparent border-zinc-600 text-zinc-300 hover:border-zinc-500 hover:bg-zinc-800/50'
-                                }`}
-                            >
-                                {isWatched ? <Check className="w-5 h-5"/> : <Eye className="w-5 h-5"/>}
-                                {isWatched ? 'Watched' : 'Mark as Watched'}
-                            </button>
+                            {/* Watchlist and Watched buttons on same row */}
+                            <div className="grid grid-cols-2 gap-3">
+                                {/* Watchlist button */}
+                                <button 
+                                    onClick={() => toggleWatchlist(movie)} 
+                                    className={`flex items-center justify-center gap-2 py-3 rounded-lg font-medium transition border ${
+                                        isInWatchlist 
+                                            ? 'bg-blue-600 border-blue-600 text-white hover:bg-blue-700 hover:border-blue-700' 
+                                            : 'bg-transparent border-blue-500 text-blue-400 hover:bg-blue-500/10 hover:border-blue-400'
+                                    }`}
+                                >
+                                    {isInWatchlist ? (
+                                        <>
+                                            <Check className="w-5 h-5"/>
+                                            <span className="hidden sm:inline">In watchlist</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Plus className="w-5 h-5"/>
+                                            <span className="hidden sm:inline">Add to watchlist</span>
+                                        </>
+                                    )}
+                                </button>
+                                
+                                {/* Watched button */}
+                                <button 
+                                    onClick={() => isWatched ? unmarkAsWatched(movie) : markAsWatched(movie)} 
+                                    className={`flex items-center justify-center gap-2 py-3 rounded-lg font-medium transition border ${
+                                        isWatched 
+                                            ? 'bg-emerald-600 border-emerald-600 text-white hover:bg-emerald-700 hover:border-emerald-700' 
+                                            : 'bg-transparent border-zinc-600 text-zinc-300 hover:border-zinc-500 hover:bg-zinc-800/50'
+                                    }`}
+                                >
+                                    {isWatched ? (
+                                        <>
+                                            <Check className="w-5 h-5"/>
+                                            <span className="hidden sm:inline">Watched</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Eye className="w-5 h-5"/>
+                                            <span className="hidden sm:inline">Mark as watched</span>
+                                        </>
+                                    )}
+                                </button>
+                            </div>
                         </div>
                         
                         {/* Crew info */}
@@ -481,6 +492,12 @@
                                 <div>
                                     <span className="text-zinc-500 block mb-1">Director</span>
                                     <span className="text-zinc-300">{detail.director}</span>
+                                </div>
+                            )}
+                            {detail.actors?.length > 0 && (
+                                <div>
+                                    <span className="text-zinc-500 block mb-1">Cast</span>
+                                    <span className="text-zinc-300">{detail.actors.join(', ')}</span>
                                 </div>
                             )}
                             {detail.writers?.length > 0 && (
@@ -501,17 +518,12 @@
                                     <span className="text-zinc-300">{detail.editor}</span>
                                 </div>
                             )}
-                            {detail.actors?.length > 0 && (
-                                <div>
-                                    <span className="text-zinc-500 block mb-1">Cast</span>
-                                    <span className="text-zinc-300">{detail.actors.join(', ')}</span>
-                                </div>
-                            )}
                         </div>
                         
                         {/* Overview */}
                         {detail.overview && (
                             <div className="border-t border-zinc-800 pt-4">
+                                <h3 className="text-zinc-500 text-sm mb-2">Overview</h3>
                                 <p className="text-zinc-400 text-sm leading-relaxed">{detail.overview}</p>
                             </div>
                         )}
@@ -585,11 +597,11 @@
                                         <label className="flex items-center gap-2 cursor-pointer flex-shrink-0">
                                             <input 
                                                 type="checkbox" 
-                                                checked={state.wishlistOnly} 
-                                                onChange={toggleWishlistOnly}
+                                                checked={state.watchlistOnly} 
+                                                onChange={toggleWatchlistOnly}
                                                 className="w-4 h-4 rounded bg-zinc-800 border-zinc-600 text-rose-500 focus:ring-rose-500 focus:ring-offset-zinc-950"
                                             />
-                                            <span className="text-sm text-zinc-400 whitespace-nowrap">Wishlist films only</span>
+                                            <span className="text-sm text-zinc-400 whitespace-nowrap">Watchlist films only</span>
                                         </label>
                                         
                                         <button 
@@ -636,7 +648,7 @@
                                         className="flex items-center gap-2 text-zinc-400 hover:text-white transition"
                                     >
                                         <ChevronLeft className="w-5 h-5"/>
-                                        Back to {state.returnToList === 'wishlist' ? 'Wishlist' : state.returnToList === 'oscar' ? 'Oscar Movies' : 'Watched'}
+                                        Back to {state.returnToList === 'watchlist' ? 'watchlist' : state.returnToList === 'oscar' ? 'Oscar movies' : 'watched'}
                                     </button>
                                 </div>
                             )}
@@ -676,29 +688,29 @@
                                 <div className="max-w-md mx-auto px-4 py-20 text-center">
                                     <Film className="w-16 h-16 text-zinc-700 mx-auto mb-4"/>
                                     <h2 className="text-xl font-semibold mb-2">No movies</h2>
-                                    <p className="text-zinc-500">{state.wishlistOnly ? "Wishlist is empty" : "All watched!"}</p>
+                                    <p className="text-zinc-500">{state.watchlistOnly ? "Watchlist is empty" : "All watched!"}</p>
                                 </div>
                             )}
                         </div>
                     )}
 
-                    {state.page === 'wishlist' && (
+                    {state.page === 'watchlist' && (
                         <div className="max-w-2xl mx-auto px-4 py-6">
                             <div className="flex items-center gap-4 mb-6">
                                 <button onClick={() => setState(s => ({...s, page: 'home', fromList: false}))} className="text-zinc-400 hover:text-white">
                                     <ChevronLeft className="w-6 h-6"/>
                                 </button>
-                                <h2 className="text-xl font-bold">Wishlist</h2>
-                                <span className="text-zinc-500 text-sm ml-auto">{state.wishlist.filter(m => !state.watched.includes(m)).length} movies</span>
+                                <h2 className="text-xl font-bold">Watchlist</h2>
+                                <span className="text-zinc-500 text-sm ml-auto">{state.watchlist.filter(m => !state.watched.includes(m)).length} movies</span>
                             </div>
                             <div className="grid grid-cols-3 gap-3">
-                                {state.wishlist.filter(m => !state.watched.includes(m)).map((movie, i) => (
+                                {state.watchlist.filter(m => !state.watched.includes(m)).map((movie, i) => (
                                     <SmallCard 
                                         key={i} 
                                         movie={movie} 
                                         onClick={() => {
-                                            // Find this movie in the wishlist, navigate to it
-                                            const filtered = state.wishlist.filter(m => !state.watched.includes(m));
+                                            // Find this movie in the watchlist, navigate to it
+                                            const filtered = state.watchlist.filter(m => !state.watched.includes(m));
                                             const shuffled = [...filtered]; // Don't shuffle when coming from list
                                             const index = shuffled.indexOf(movie);
                                             setState(s => ({
@@ -707,7 +719,7 @@
                                                 shuffledMovies: shuffled,
                                                 currentIndex: index,
                                                 fromList: true,
-                                                returnToList: 'wishlist'
+                                                returnToList: 'watchlist'
                                             }));
                                         }}
                                     />
@@ -722,7 +734,7 @@
                                 <button onClick={() => setState(s => ({...s, page: 'home', fromList: false}))} className="text-zinc-400 hover:text-white">
                                     <ChevronLeft className="w-6 h-6"/>
                                 </button>
-                                <h2 className="text-xl font-bold">Oscar Movies</h2>
+                                <h2 className="text-xl font-bold">Oscar movies</h2>
                                 <span className="text-zinc-500 text-sm ml-auto">{getOscarMovies().length}</span>
                             </div>
                             
@@ -840,17 +852,17 @@
                                 
                                 <div className="space-y-1">
                                     <button 
-                                        onClick={() => setState(s => ({...s, page: 'wishlist', menuOpen: false, fromList: false}))} 
+                                        onClick={() => setState(s => ({...s, page: 'watchlist', menuOpen: false, fromList: false}))} 
                                         className="w-full text-left px-4 py-3 rounded-lg hover:bg-zinc-800 flex items-center justify-between"
                                     >
-                                        <span>Wishlist</span>
-                                        <span className="text-zinc-500 text-sm">{state.wishlist.filter(m => !state.watched.includes(m)).length}</span>
+                                        <span>Watchlist</span>
+                                        <span className="text-zinc-500 text-sm">{state.watchlist.filter(m => !state.watched.includes(m)).length}</span>
                                     </button>
                                     <button 
                                         onClick={() => setState(s => ({...s, page: 'oscar', menuOpen: false, fromList: false}))} 
                                         className="w-full text-left px-4 py-3 rounded-lg hover:bg-zinc-800"
                                     >
-                                        Oscar Movies
+                                        Oscar movies
                                     </button>
                                     <button 
                                         onClick={() => setState(s => ({...s, page: 'watched', menuOpen: false, fromList: false}))} 
