@@ -293,14 +293,12 @@
             const markAsWatched = (movie) => {
                 const newWatched = [...state.watched, movie];
                 const newWatchlist = state.watchlist.filter(m => m !== movie); // Remove from watchlist when watched
-                const newShuffled = state.shuffledMovies.filter(m => m !== movie);
+                // Don't remove from shuffledMovies so user can see the state change
                 setState(s => ({
                     ...s,
                     watched: newWatched,
                     watchedDates: {...s.watchedDates, [movie]: new Date().toISOString()},
-                    watchlist: newWatchlist,
-                    shuffledMovies: newShuffled,
-                    currentIndex: Math.min(Math.max(0, s.currentIndex), newShuffled.length - 1)
+                    watchlist: newWatchlist
                 }));
             };
             
@@ -597,10 +595,13 @@
                     {/* Header */}
                     <header className="bg-zinc-900 sticky top-0 z-40 border-b border-zinc-800">
                         <div className="max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
-                            <div className="flex items-center gap-2">
+                            <button 
+                                onClick={() => setState(s => ({...s, page: 'home', fromList: false, returnToList: null}))} 
+                                className="flex items-center gap-2 hover:opacity-80 transition"
+                            >
                                 <Film className="w-5 h-5 text-rose-500"/>
                                 <h1 className="text-lg font-semibold">MoviePicker</h1>
-                            </div>
+                            </button>
                             <button onClick={() => setState(s => ({...s, menuOpen: true}))} className="p-2 hover:bg-zinc-800 rounded-lg transition">
                                 <Menu className="w-5 h-5 text-zinc-400"/>
                             </button>
@@ -879,9 +880,10 @@
                                     </button>
                                     <button 
                                         onClick={() => setState(s => ({...s, page: 'oscar', menuOpen: false, fromList: false}))} 
-                                        className="w-full text-left px-4 py-3 rounded-lg hover:bg-zinc-800"
+                                        className="w-full text-left px-4 py-3 rounded-lg hover:bg-zinc-800 flex items-center justify-between"
                                     >
-                                        Oscar movies
+                                        <span>Oscar movies</span>
+                                        <span className="text-zinc-500 text-sm">{getOscarMovies().length}</span>
                                     </button>
                                     <button 
                                         onClick={() => setState(s => ({...s, page: 'watched', menuOpen: false, fromList: false}))} 
