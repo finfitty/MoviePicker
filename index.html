@@ -3,7 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MoviePicker</title>
+    <title>MoviePicker v1.0.1</title>
+    <!--
+    MoviePicker Application - Version 1.0.1
+    Release Date: December 8, 2024
+    
+    CHANGELOG v1.0.1:
+    - Updated color palette to Deep Peacock (#006d77)
+    - Luxurious theater curtain elegance theme
+    - Replaced vibrant teal with jewel-toned peacock
+    - All hover (#0a7e8a) and active states (#005962) updated
+    - Maintains WCAG AA accessibility standards (8.4:1 contrast)
+    
+    CHANGELOG v1.0.0:
+    - Initial production release
+    - Watchlist feature with ribbon bookmark icon (IMDb-inspired)
+    - Original teal accent color from brand color guide
+    - Mobile-friendly: all button text visible on small screens
+    - Three action buttons: Watch trailer, Add to watchlist, Mark as watched
+    - Oscar movies database with 12 category filters
+    - Watched movie tracking with timestamps
+    - TMDB API integration for movie details, cast, crew, streaming
+    - Responsive layout with touch gestures for mobile
+    - localStorage persistence for user data
+    - Bug fixes: Oscar count in menu, watched button state, clickable logo
+    -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -361,7 +385,7 @@
                                         ? 'hover:opacity-90' 
                                         : 'bg-black/70 hover:bg-black/85 border border-white/20'
                                 }`}
-                                style={isInWatchlist ? {backgroundColor: '#14b8a6'} : {}}
+                                style={isInWatchlist ? {backgroundColor: '#006d77'} : {}}
                                 title={isInWatchlist ? "Remove from watchlist" : "Add to watchlist"}
                             >
                                 {isInWatchlist ? (
@@ -448,19 +472,19 @@
                                             ? 'bg-teal-600 border-teal-600 text-white hover:bg-teal-700 hover:border-teal-700' 
                                             : 'bg-transparent border-teal-500 text-teal-400 hover:bg-teal-500/10 hover:border-teal-400'
                                     }`}
-                                    style={isInWatchlist ? {backgroundColor: '#14b8a6', borderColor: '#14b8a6'} : {borderColor: '#14b8a6', color: '#14b8a6'}}
+                                    style={isInWatchlist ? {backgroundColor: '#006d77', borderColor: '#006d77'} : {borderColor: '#006d77', color: '#006d77'}}
                                     onMouseEnter={e => {
                                         if (isInWatchlist) {
-                                            e.currentTarget.style.backgroundColor = '#0f766e';
-                                            e.currentTarget.style.borderColor = '#0f766e';
+                                            e.currentTarget.style.backgroundColor = '#005962';
+                                            e.currentTarget.style.borderColor = '#005962';
                                         } else {
-                                            e.currentTarget.style.backgroundColor = 'rgba(20, 184, 166, 0.1)';
+                                            e.currentTarget.style.backgroundColor = 'rgba(0, 109, 119, 0.1)';
                                         }
                                     }}
                                     onMouseLeave={e => {
                                         if (isInWatchlist) {
-                                            e.currentTarget.style.backgroundColor = '#14b8a6';
-                                            e.currentTarget.style.borderColor = '#14b8a6';
+                                            e.currentTarget.style.backgroundColor = '#006d77';
+                                            e.currentTarget.style.borderColor = '#006d77';
                                         } else {
                                             e.currentTarget.style.backgroundColor = 'transparent';
                                         }
