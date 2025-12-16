@@ -148,41 +148,41 @@
         };
         
         // Pennant Flag Bookmark Icon - Not in Watchlist
-        const BookmarkPlus = ({className}) => (
-            <svg className={className} width="48" height="64" viewBox="0 0 48 64" xmlns="http://www.w3.org/2000/svg">
+        const BookmarkPlus = ({style}) => (
+            <svg width="48" height="64" viewBox="0 0 48 64" xmlns="http://www.w3.org/2000/svg" style={{...style, display: 'block'}}>
                 <path d="M 2 2 L 46 2 L 46 64 L 24 56 L 2 64 Z" 
                       fill="none" 
-                      stroke="currentColor" 
+                      stroke={style?.color || 'currentColor'}
                       strokeWidth="2.5"
                       strokeLinejoin="miter"/>
                 <g transform="translate(6, 6)">
-                    <rect x="16" y="2" width="4" height="4" rx="1" fill="currentColor"/>
+                    <rect x="16" y="2" width="4" height="4" rx="1" fill={style?.color || 'currentColor'}/>
                     <rect x="4" y="10" width="28" height="20" rx="2" 
-                          fill="none" stroke="currentColor" strokeWidth="2"/>
+                          fill="none" stroke={style?.color || 'currentColor'} strokeWidth="2"/>
                     <g transform="translate(18, 20)">
-                        <rect x="-1.5" y="-6" width="3" height="12" fill="currentColor" rx="1"/>
-                        <rect x="-6" y="-1.5" width="12" height="3" fill="currentColor" rx="1"/>
+                        <rect x="-1.5" y="-6" width="3" height="12" fill={style?.color || 'currentColor'} rx="1"/>
+                        <rect x="-6" y="-1.5" width="12" height="3" fill={style?.color || 'currentColor'} rx="1"/>
                     </g>
-                    <rect x="16" y="34" width="4" height="4" rx="1" fill="currentColor"/>
+                    <rect x="16" y="34" width="4" height="4" rx="1" fill={style?.color || 'currentColor'}/>
                 </g>
             </svg>
         );
         
         // Pennant Flag Bookmark Icon - In Watchlist
-        const BookmarkCheck = ({className}) => (
-            <svg className={className} width="48" height="64" viewBox="0 0 48 64" xmlns="http://www.w3.org/2000/svg">
+        const BookmarkCheck = ({style}) => (
+            <svg width="48" height="64" viewBox="0 0 48 64" xmlns="http://www.w3.org/2000/svg" style={{...style, display: 'block'}}>
                 <path d="M 2 2 L 46 2 L 46 64 L 24 56 L 2 64 Z" 
-                      fill="currentColor" 
-                      stroke="currentColor" 
+                      fill={style?.color || '#006d77'}
+                      stroke={style?.color || '#006d77'}
                       strokeWidth="2.5" 
                       strokeLinejoin="miter"/>
                 <g transform="translate(6, 6)">
-                    <rect x="0" y="0" width="36" height="42" rx="2" fill="currentColor"/>
+                    <rect x="0" y="0" width="36" height="42" rx="2" fill={style?.color || '#006d77'}/>
                     <rect x="16" y="2" width="4" height="4" rx="1" fill="#0a0a0a"/>
                     <rect x="4" y="10" width="28" height="20" rx="2" fill="#0a0a0a"/>
                     <g transform="translate(18, 20)">
                         <path d="M -5 0 L -2 4 L 6 -5" 
-                              stroke="currentColor" 
+                              stroke={style?.color || '#006d77'}
                               strokeWidth="3" 
                               strokeLinecap="round" 
                               strokeLinejoin="round"
@@ -444,18 +444,18 @@
                             {/* Watchlist button - top right */}
                             <button
                                 onClick={() => toggleWatchlist(movie)}
-                                className={`absolute top-3 right-3 p-2 rounded-lg transition shadow-lg ${
+                                className={`absolute top-3 right-3 rounded-lg transition shadow-lg ${
                                     isInWatchlist 
-                                        ? 'hover:opacity-90' 
-                                        : 'bg-black/70 hover:bg-black/85 border border-white/20'
+                                        ? 'hover:opacity-90 p-1' 
+                                        : 'bg-black/70 hover:bg-black/85 border border-white/20 p-2'
                                 }`}
-                                style={isInWatchlist ? {backgroundColor: 'transparent'} : {}}
+                                style={isInWatchlist ? {backgroundColor: 'transparent', padding: '0.25rem'} : {padding: '0.5rem'}}
                                 title={isInWatchlist ? "Remove from watchlist" : "Add to watchlist"}
                             >
                                 {isInWatchlist ? (
-                                    <BookmarkCheck className="w-8 h-10" style={{color: '#006d77'}}/>
+                                    <BookmarkCheck style={{color: '#006d77', display: 'block', width: '48px', height: '64px'}}/>
                                 ) : (
-                                    <BookmarkPlus className="w-8 h-10" style={{color: '#006d77'}}/>
+                                    <BookmarkPlus style={{color: '#006d77', display: 'block', width: '48px', height: '64px'}}/>
                                 )}
                             </button>
                         </div>
@@ -687,7 +687,12 @@
                                 className="flex items-center gap-3 hover:opacity-80 transition"
                             >
                                 <FilmStripIcon size="sm" />
-                                <div style={{fontFamily: 'Montserrat, sans-serif', display: 'flex', flexDirection: 'column', lineHeight: '0.9'}}>
+                                <div style={{
+                                    fontFamily: 'Montserrat, sans-serif', 
+                                    display: 'flex', 
+                                    flexDirection: 'column', 
+                                    lineHeight: '0.9'
+                                }}>
                                     <span style={{color: '#ffffff', fontWeight: 300, fontSize: '1.2rem'}}>WATCH</span>
                                     <span style={{color: '#0a7e8a', fontWeight: 700, fontSize: '1.2rem'}}>LIST</span>
                                 </div>
