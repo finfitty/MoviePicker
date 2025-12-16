@@ -3,10 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MoviePicker v1.0.1</title>
+    <title>MoviePicker v1.0.2</title>
     <!--
-    MoviePicker Application - Version 1.0.1
-    Release Date: December 8, 2024
+    MoviePicker Application - Version 1.0.2
+    Release Date: December 16, 2025
+    
+    CHANGELOG v1.0.2:
+    - Updated branding with new WatchList logo (film strip + stacked text)
+    - Replaced bookmark icons with pennant flag design
+    - Consistent Deep Peacock color palette throughout
+    - Montserrat font for logo branding
     
     CHANGELOG v1.0.1:
     - Updated color palette to Deep Peacock (#006d77)
@@ -34,7 +40,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@300;400;600;700&display=swap" rel="stylesheet">
     <script>
         tailwind.config = { corePlugins: { preflight: true } }
     </script>
@@ -109,12 +115,83 @@
          *   top-right corner of movie posters AND as a labeled button with watchlist/watched buttons.
          *   Toggles a movie's presence in the user's watchlist. The ribbon bookmark fills with blue-600
          *   and shows a checkmark when in watchlist. Watchlist changes persist in localStorage.
-         *   Poster icon: outline ribbon+plus → filled blue ribbon+check.
-         *   Action button: blue border + text → filled blue background with check.
+         *   Poster icon: outline ribbon+plus â†’ filled blue ribbon+check.
+         *   Action button: blue border + text â†’ filled blue background with check.
          */
         
         const { useState, useEffect, useRef, useCallback } = React;
         const TOKEN = 'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI4NDZkYmQ3NzY5MmE3MDY3NGNlMTBhMWM2YjRkNjY2YyIsIm5iZiI6MTc2MzQyMzc5MS4wMDg5OTk4LCJzdWIiOiI2OTFiYjYyZmMzMjkxYzk2ODdjN2QyYTQiLCJzY29wZXMiOlsiYXBpX3JlYWQiXSwidmVyc2lvbiI6MX0.yceVQdz0-IeMdfCDLlmerZZZ9X95mX_5MUEuTHEKnXM';
+        
+        // Film Strip Icon Component for Logo
+        const FilmStripIcon = ({size = 'sm'}) => {
+            const sizes = {
+                sm: { width: 35, height: 40, holeSize: 4, frameWidth: 25, frameHeight: 18, playBorder: 6 },
+                md: { width: 55, height: 65, holeSize: 6, frameWidth: 38, frameHeight: 28, playBorder: 9 },
+                lg: { width: 70, height: 80, holeSize: 8, frameWidth: 50, frameHeight: 35, playBorder: 12 }
+            };
+            const s = sizes[size];
+            const holeX = (s.width - s.holeSize) / 2;
+            const frameX = (s.width - s.frameWidth) / 2;
+            
+            return (
+                <svg width={s.width} height={s.height} viewBox={`0 0 ${s.width} ${s.height}`} xmlns="http://www.w3.org/2000/svg">
+                    <rect width={s.width} height={s.height} fill="#006d77" rx="4"/>
+                    <rect x={holeX} y="4" width={s.holeSize} height={s.holeSize} fill="#0a0a0a" rx="1"/>
+                    <rect x={frameX} y={(s.height - s.frameHeight) / 2} width={s.frameWidth} height={s.frameHeight} fill="#0a0a0a" rx="2"/>
+                    <polygon 
+                        points={`${s.width/2 - s.playBorder/3},${s.height/2 - s.playBorder/2} ${s.width/2 + s.playBorder/2},${s.height/2} ${s.width/2 - s.playBorder/3},${s.height/2 + s.playBorder/2}`}
+                        fill="#006d77"
+                    />
+                    <rect x={holeX} y={s.height - s.holeSize - 4} width={s.holeSize} height={s.holeSize} fill="#0a0a0a" rx="1"/>
+                </svg>
+            );
+        };
+        
+        // Pennant Flag Bookmark Icon - Not in Watchlist
+        const BookmarkPlus = ({className}) => (
+            <svg className={className} width="48" height="64" viewBox="0 0 48 64" xmlns="http://www.w3.org/2000/svg">
+                <path d="M 2 2 L 46 2 L 46 64 L 24 56 L 2 64 Z" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      strokeWidth="2.5"
+                      strokeLinejoin="miter"/>
+                <g transform="translate(6, 6)">
+                    <rect x="16" y="2" width="4" height="4" rx="1" fill="currentColor"/>
+                    <rect x="4" y="10" width="28" height="20" rx="2" 
+                          fill="none" stroke="currentColor" strokeWidth="2"/>
+                    <g transform="translate(18, 20)">
+                        <rect x="-1.5" y="-6" width="3" height="12" fill="currentColor" rx="1"/>
+                        <rect x="-6" y="-1.5" width="12" height="3" fill="currentColor" rx="1"/>
+                    </g>
+                    <rect x="16" y="34" width="4" height="4" rx="1" fill="currentColor"/>
+                </g>
+            </svg>
+        );
+        
+        // Pennant Flag Bookmark Icon - In Watchlist
+        const BookmarkCheck = ({className}) => (
+            <svg className={className} width="48" height="64" viewBox="0 0 48 64" xmlns="http://www.w3.org/2000/svg">
+                <path d="M 2 2 L 46 2 L 46 64 L 24 56 L 2 64 Z" 
+                      fill="currentColor" 
+                      stroke="currentColor" 
+                      strokeWidth="2.5" 
+                      strokeLinejoin="miter"/>
+                <g transform="translate(6, 6)">
+                    <rect x="0" y="0" width="36" height="42" rx="2" fill="currentColor"/>
+                    <rect x="16" y="2" width="4" height="4" rx="1" fill="#0a0a0a"/>
+                    <rect x="4" y="10" width="28" height="20" rx="2" fill="#0a0a0a"/>
+                    <g transform="translate(18, 20)">
+                        <path d="M -5 0 L -2 4 L 6 -5" 
+                              stroke="currentColor" 
+                              strokeWidth="3" 
+                              strokeLinecap="round" 
+                              strokeLinejoin="round"
+                              fill="none"/>
+                    </g>
+                    <rect x="16" y="34" width="4" height="4" rx="1" fill="#0a0a0a"/>
+                </g>
+            </svg>
+        );
         
         const Film = ({className}) => <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="2" width="20" height="20" rx="2"/><path d="M7 2v20M17 2v20M2 12h20"/></svg>;
         const X = ({className}) => <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>;
@@ -126,24 +203,11 @@
         const Eye = ({className}) => <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>;
         const Check = ({className}) => <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="20 6 9 17 4 12"/></svg>;
         const Menu = ({className}) => <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>;
-        const BookmarkPlus = ({className}) => (
-            <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M5 3h14a1 1 0 0 1 1 1v18l-8-5-8 5V4a1 1 0 0 1 1-1z" strokeLinejoin="round"/>
-                <line x1="12" y1="8" x2="12" y2="14" strokeWidth="2.5" strokeLinecap="round"/>
-                <line x1="9" y1="11" x2="15" y2="11" strokeWidth="2.5" strokeLinecap="round"/>
-            </svg>
-        );
-        const BookmarkCheck = ({className}) => (
-            <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="none">
-                <path d="M5 3h14a1 1 0 0 1 1 1v18l-8-5-8 5V4a1 1 0 0 1 1-1z"/>
-                <polyline points="9 11 11 13 15 9" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-        );
         const Plus = ({className}) => <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>;
         const ExternalLink = ({className}) => <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>;
 
         const bestPictureWinners = ["Wings","The Broadway Melody","All Quiet on the Western Front","Cimarron","Grand Hotel","Cavalcade","It Happened One Night","Mutiny on the Bounty","The Great Ziegfeld","The Life of Emile Zola","You Can't Take It with You","Gone with the Wind","Rebecca","How Green Was My Valley","Mrs. Miniver","Casablanca","Going My Way","The Lost Weekend","The Best Years of Our Lives","Gentleman's Agreement","Hamlet","All the King's Men","All About Eve","An American in Paris","The Greatest Show on Earth","From Here to Eternity","On the Waterfront","Marty","Around the World in 80 Days","The Bridge on the River Kwai","Gigi","Ben-Hur","The Apartment","West Side Story","Lawrence of Arabia","Tom Jones","My Fair Lady","The Sound of Music","A Man for All Seasons","In the Heat of the Night","Oliver!","Midnight Cowboy","Patton","The French Connection","The Godfather","The Sting","The Godfather Part II","One Flew Over the Cuckoo's Nest","Rocky","Annie Hall","The Deer Hunter","Kramer vs. Kramer","Ordinary People","Chariots of Fire","Gandhi","Terms of Endearment","Amadeus","Out of Africa","Platoon","The Last Emperor","Rain Man","Driving Miss Daisy","Dances with Wolves","The Silence of the Lambs","Unforgiven","Schindler's List","Forrest Gump","Braveheart","The English Patient","Titanic","Shakespeare in Love","American Beauty","Gladiator","A Beautiful Mind","Chicago","The Lord of the Rings: The Return of the King","Million Dollar Baby","Crash","The Departed","No Country for Old Men","Slumdog Millionaire","The Hurt Locker","The King's Speech","The Artist","Argo","12 Years a Slave","Birdman","Spotlight","Moonlight","The Shape of Water","Green Book","Parasite","Nomadland","CODA","Everything Everywhere All at Once","Oppenheimer"];
-        const bestPictureNominees = ["Born Yesterday","Father of the Bride","King Solomon's Mines","Sunset Boulevard","Decision Before Dawn","A Place in the Sun","Quo Vadis","A Streetcar Named Desire","High Noon","Ivanhoe","Moulin Rouge","The Quiet Man","Julius Caesar","The Robe","Roman Holiday","Shane","The Caine Mutiny","The Country Girl","Seven Brides for Seven Brothers","Three Coins in the Fountain","Love Is a Many-Splendored Thing","Mister Roberts","Picnic","The Rose Tattoo","Friendly Persuasion","Giant","The King and I","The Ten Commandments","Peyton Place","Sayonara","Twelve Angry Men","Witness for the Prosecution","Auntie Mame","Cat on a Hot Tin Roof","The Defiant Ones","Separate Tables","Anatomy of a Murder","The Diary of Anne Frank","The Nun's Story","Room at the Top","The Alamo","Elmer Gantry","Sons and Lovers","The Sundowners","Fanny","The Guns of Navarone","The Hustler","Judgment at Nuremberg","The Longest Day","The Music Man","To Kill a Mockingbird","America, America","Cleopatra","How the West Was Won","Lilies of the Field","Becket","Dr. Strangelove","Mary Poppins","Zorba the Greek","Darling","Doctor Zhivago","Ship of Fools","A Thousand Clowns","Alfie","The Russians Are Coming, the Russians Are Coming","The Sand Pebbles","Who's Afraid of Virginia Woolf?","Bonnie and Clyde","Doctor Dolittle","The Graduate","Guess Who's Coming to Dinner","Funny Girl","The Lion in Winter","Rachel, Rachel","Romeo and Juliet","Anne of the Thousand Days","Butch Cassidy and the Sundance Kid","Hello, Dolly!","Z","Airport","Five Easy Pieces","Love Story","MASH","A Clockwork Orange","Fiddler on the Roof","The Last Picture Show","Nicholas and Alexandra","Cabaret","Deliverance","The Emigrants","Sounder","American Graffiti","Cries and Whispers","The Exorcist","A Touch of Class","Chinatown","The Conversation","Lenny","The Towering Inferno","Barry Lyndon","Dog Day Afternoon","Jaws","Nashville","All the President's Men","Bound for Glory","Network","Taxi Driver","The Goodbye Girl","Julia","Star Wars","The Turning Point","Coming Home","Heaven Can Wait","Midnight Express","An Unmarried Woman","All That Jazz","Apocalypse Now","Breaking Away","Norma Rae","Coal Miner's Daughter","The Elephant Man","Raging Bull","Tess","Atlantic City","On Golden Pond","Raiders of the Lost Ark","Reds","E.T. the Extra-Terrestrial","Missing","Tootsie","The Verdict","The Big Chill","The Dresser","The Right Stuff","Tender Mercies","The Killing Fields","A Passage to India","Places in the Heart","A Soldier's Story","The Color Purple","Kiss of the Spider Woman","Prizzi's Honor","Witness","Children of a Lesser God","Hannah and Her Sisters","The Mission","A Room with a View","Broadcast News","Fatal Attraction","Hope and Glory","Moonstruck","The Accidental Tourist","Dangerous Liaisons","Mississippi Burning","Working Girl","Born on the Fourth of July","Dead Poets Society","Field of Dreams","My Left Foot","Awakenings","Ghost","The Godfather Part III","Goodfellas","Bugsy","JFK","The Prince of Tides","Beauty and the Beast","The Crying Game","A Few Good Men","Howards End","Scent of a Woman","The Fugitive","In the Name of the Father","The Piano","The Remains of the Day","Four Weddings and a Funeral","Pulp Fiction","Quiz Show","The Shawshank Redemption","Apollo 13","Babe","Il Postino","Sense and Sensibility","Fargo","Jerry Maguire","Secrets & Lies","Shine","As Good as It Gets","The Full Monty","Good Will Hunting","L.A. Confidential","Elizabeth","Life Is Beautiful","Saving Private Ryan","The Thin Red Line","The Cider House Rules","The Green Mile","The Insider","The Sixth Sense","Chocolat","Crouching Tiger, Hidden Dragon","Erin Brockovich","Traffic","Gosford Park","In the Bedroom","The Lord of the Rings: The Fellowship of the Ring","Moulin Rouge!","Gangs of New York","The Hours","The Lord of the Rings: The Two Towers","The Pianist","Lost in Translation","Master and Commander: The Far Side of the World","Mystic River","Seabiscuit","The Aviator","Finding Neverland","Ray","Sideways","Brokeback Mountain","Capote","Good Night, and Good Luck","Munich","Babel","Letters from Iwo Jima","Little Miss Sunshine","The Queen","Atonement","Juno","Michael Clayton","There Will Be Blood","The Curious Case of Benjamin Button","Frost/Nixon","Milk","The Reader","Avatar","The Blind Side","District 9","An Education","Inglourious Basterds","Precious","A Serious Man","Up","Up in the Air","Black Swan","The Fighter","Inception","The Kids Are All Right","127 Hours","The Social Network","Toy Story 3","True Grit","Winter's Bone","The Descendants","Extremely Loud & Incredibly Close","The Help","Hugo","Midnight in Paris","Moneyball","The Tree of Life","War Horse","Amour","Beasts of the Southern Wild","Django Unchained","Les Misérables","Life of Pi","Lincoln","Silver Linings Playbook","Zero Dark Thirty","American Hustle","Captain Phillips","Dallas Buyers Club","Gravity","Her","Nebraska","Philomena","The Wolf of Wall Street","American Sniper","Boyhood","The Grand Budapest Hotel","The Imitation Game","Selma","The Theory of Everything","Whiplash","The Big Short","Bridge of Spies","Brooklyn","Mad Max: Fury Road","The Martian","The Revenant","Room","Arrival","Fences","Hacksaw Ridge","Hell or High Water","Hidden Figures","La La Land","Lion","Manchester by the Sea","Call Me by Your Name","Darkest Hour","Dunkirk","Get Out","Lady Bird","Phantom Thread","The Post","Three Billboards Outside Ebbing, Missouri","Black Panther","BlacKkKlansman","Bohemian Rhapsody","The Favourite","Roma","A Star Is Born","Vice","Ford v Ferrari","The Irishman","Jojo Rabbit","Joker","Little Women","Marriage Story","1917","Once Upon a Time in Hollywood","The Father","Judas and the Black Messiah","Mank","Minari","Promising Young Woman","Sound of Metal","The Trial of the Chicago 7","Belfast","Don't Look Up","Drive My Car","Dune","King Richard","Licorice Pizza","Nightmare Alley","The Power of the Dog","West Side Story","All Quiet on the Western Front","Avatar: The Way of Water","The Banshees of Inisherin","Elvis","The Fabelmans","Tár","Top Gun: Maverick","Triangle of Sadness","Women Talking","American Fiction","Anatomy of a Fall","Barbie","The Holdovers","Killers of the Flower Moon","Maestro","Past Lives","Poor Things","The Zone of Interest"];
+        const bestPictureNominees = ["Born Yesterday","Father of the Bride","King Solomon's Mines","Sunset Boulevard","Decision Before Dawn","A Place in the Sun","Quo Vadis","A Streetcar Named Desire","High Noon","Ivanhoe","Moulin Rouge","The Quiet Man","Julius Caesar","The Robe","Roman Holiday","Shane","The Caine Mutiny","The Country Girl","Seven Brides for Seven Brothers","Three Coins in the Fountain","Love Is a Many-Splendored Thing","Mister Roberts","Picnic","The Rose Tattoo","Friendly Persuasion","Giant","The King and I","The Ten Commandments","Peyton Place","Sayonara","Twelve Angry Men","Witness for the Prosecution","Auntie Mame","Cat on a Hot Tin Roof","The Defiant Ones","Separate Tables","Anatomy of a Murder","The Diary of Anne Frank","The Nun's Story","Room at the Top","The Alamo","Elmer Gantry","Sons and Lovers","The Sundowners","Fanny","The Guns of Navarone","The Hustler","Judgment at Nuremberg","The Longest Day","The Music Man","To Kill a Mockingbird","America, America","Cleopatra","How the West Was Won","Lilies of the Field","Becket","Dr. Strangelove","Mary Poppins","Zorba the Greek","Darling","Doctor Zhivago","Ship of Fools","A Thousand Clowns","Alfie","The Russians Are Coming, the Russians Are Coming","The Sand Pebbles","Who's Afraid of Virginia Woolf?","Bonnie and Clyde","Doctor Dolittle","The Graduate","Guess Who's Coming to Dinner","Funny Girl","The Lion in Winter","Rachel, Rachel","Romeo and Juliet","Anne of the Thousand Days","Butch Cassidy and the Sundance Kid","Hello, Dolly!","Z","Airport","Five Easy Pieces","Love Story","MASH","A Clockwork Orange","Fiddler on the Roof","The Last Picture Show","Nicholas and Alexandra","Cabaret","Deliverance","The Emigrants","Sounder","American Graffiti","Cries and Whispers","The Exorcist","A Touch of Class","Chinatown","The Conversation","Lenny","The Towering Inferno","Barry Lyndon","Dog Day Afternoon","Jaws","Nashville","All the President's Men","Bound for Glory","Network","Taxi Driver","The Goodbye Girl","Julia","Star Wars","The Turning Point","Coming Home","Heaven Can Wait","Midnight Express","An Unmarried Woman","All That Jazz","Apocalypse Now","Breaking Away","Norma Rae","Coal Miner's Daughter","The Elephant Man","Raging Bull","Tess","Atlantic City","On Golden Pond","Raiders of the Lost Ark","Reds","E.T. the Extra-Terrestrial","Missing","Tootsie","The Verdict","The Big Chill","The Dresser","The Right Stuff","Tender Mercies","The Killing Fields","A Passage to India","Places in the Heart","A Soldier's Story","The Color Purple","Kiss of the Spider Woman","Prizzi's Honor","Witness","Children of a Lesser God","Hannah and Her Sisters","The Mission","A Room with a View","Broadcast News","Fatal Attraction","Hope and Glory","Moonstruck","The Accidental Tourist","Dangerous Liaisons","Mississippi Burning","Working Girl","Born on the Fourth of July","Dead Poets Society","Field of Dreams","My Left Foot","Awakenings","Ghost","The Godfather Part III","Goodfellas","Bugsy","JFK","The Prince of Tides","Beauty and the Beast","The Crying Game","A Few Good Men","Howards End","Scent of a Woman","The Fugitive","In the Name of the Father","The Piano","The Remains of the Day","Four Weddings and a Funeral","Pulp Fiction","Quiz Show","The Shawshank Redemption","Apollo 13","Babe","Il Postino","Sense and Sensibility","Fargo","Jerry Maguire","Secrets & Lies","Shine","As Good as It Gets","The Full Monty","Good Will Hunting","L.A. Confidential","Elizabeth","Life Is Beautiful","Saving Private Ryan","The Thin Red Line","The Cider House Rules","The Green Mile","The Insider","The Sixth Sense","Chocolat","Crouching Tiger, Hidden Dragon","Erin Brockovich","Traffic","Gosford Park","In the Bedroom","The Lord of the Rings: The Fellowship of the Ring","Moulin Rouge!","Gangs of New York","The Hours","The Lord of the Rings: The Two Towers","The Pianist","Lost in Translation","Master and Commander: The Far Side of the World","Mystic River","Seabiscuit","The Aviator","Finding Neverland","Ray","Sideways","Brokeback Mountain","Capote","Good Night, and Good Luck","Munich","Babel","Letters from Iwo Jima","Little Miss Sunshine","The Queen","Atonement","Juno","Michael Clayton","There Will Be Blood","The Curious Case of Benjamin Button","Frost/Nixon","Milk","The Reader","Avatar","The Blind Side","District 9","An Education","Inglourious Basterds","Precious","A Serious Man","Up","Up in the Air","Black Swan","The Fighter","Inception","The Kids Are All Right","127 Hours","The Social Network","Toy Story 3","True Grit","Winter's Bone","The Descendants","Extremely Loud & Incredibly Close","The Help","Hugo","Midnight in Paris","Moneyball","The Tree of Life","War Horse","Amour","Beasts of the Southern Wild","Django Unchained","Les MisÃ©rables","Life of Pi","Lincoln","Silver Linings Playbook","Zero Dark Thirty","American Hustle","Captain Phillips","Dallas Buyers Club","Gravity","Her","Nebraska","Philomena","The Wolf of Wall Street","American Sniper","Boyhood","The Grand Budapest Hotel","The Imitation Game","Selma","The Theory of Everything","Whiplash","The Big Short","Bridge of Spies","Brooklyn","Mad Max: Fury Road","The Martian","The Revenant","Room","Arrival","Fences","Hacksaw Ridge","Hell or High Water","Hidden Figures","La La Land","Lion","Manchester by the Sea","Call Me by Your Name","Darkest Hour","Dunkirk","Get Out","Lady Bird","Phantom Thread","The Post","Three Billboards Outside Ebbing, Missouri","Black Panther","BlacKkKlansman","Bohemian Rhapsody","The Favourite","Roma","A Star Is Born","Vice","Ford v Ferrari","The Irishman","Jojo Rabbit","Joker","Little Women","Marriage Story","1917","Once Upon a Time in Hollywood","The Father","Judas and the Black Messiah","Mank","Minari","Promising Young Woman","Sound of Metal","The Trial of the Chicago 7","Belfast","Don't Look Up","Drive My Car","Dune","King Richard","Licorice Pizza","Nightmare Alley","The Power of the Dog","West Side Story","All Quiet on the Western Front","Avatar: The Way of Water","The Banshees of Inisherin","Elvis","The Fabelmans","TÃ¡r","Top Gun: Maverick","Triangle of Sadness","Women Talking","American Fiction","Anatomy of a Fall","Barbie","The Holdovers","Killers of the Flower Moon","Maestro","Past Lives","Poor Things","The Zone of Interest"];
         const bestDirector = ["Patton","The French Connection","Cabaret","The Sting","The Godfather Part II","One Flew Over the Cuckoo's Nest","Rocky","Annie Hall","The Deer Hunter","Kramer vs. Kramer","Ordinary People","Reds","Gandhi","Terms of Endearment","Amadeus","Out of Africa","Platoon","The Last Emperor","Rain Man","Born on the Fourth of July","Dances with Wolves","The Silence of the Lambs","Unforgiven","Schindler's List","Forrest Gump","Braveheart","The English Patient","Titanic","Saving Private Ryan","American Beauty","Traffic","A Beautiful Mind","The Pianist","The Lord of the Rings: The Return of the King","Million Dollar Baby","Brokeback Mountain","The Departed","No Country for Old Men","Slumdog Millionaire","The Hurt Locker","The King's Speech","The Artist","Life of Pi","Gravity","Birdman","The Revenant","La La Land","The Shape of Water","Roma","Parasite","Nomadland","The Power of the Dog","Everything Everywhere All at Once","Oppenheimer"];
         const bestActor = ["Patton","The French Connection","The Godfather","Save the Tiger","Harry and Tonto","One Flew Over the Cuckoo's Nest","Network","The Goodbye Girl","Coming Home","Kramer vs. Kramer","Raging Bull","On Golden Pond","Gandhi","Tender Mercies","Amadeus","Kiss of the Spider Woman","The Color of Money","Wall Street","Rain Man","My Left Foot","Reversal of Fortune","The Silence of the Lambs","Scent of a Woman","Philadelphia","Forrest Gump","Leaving Las Vegas","Shine","As Good as It Gets","Life Is Beautiful","American Beauty","Gladiator","Training Day","The Pianist","Mystic River","Ray","Capote","The Last King of Scotland","There Will Be Blood","Milk","Crazy Heart","The King's Speech","The Artist","Lincoln","Dallas Buyers Club","The Theory of Everything","The Revenant","Manchester by the Sea","Darkest Hour","Bohemian Rhapsody","Joker","The Father","King Richard","The Whale","Oppenheimer"];
         const bestActress = ["Women in Love","Klute","Cabaret","A Touch of Class","Alice Doesn't Live Here Anymore","One Flew Over the Cuckoo's Nest","Network","Annie Hall","Coming Home","Norma Rae","Coal Miner's Daughter","On Golden Pond","Sophie's Choice","Terms of Endearment","Places in the Heart","The Trip to Bountiful","Children of a Lesser God","Moonstruck","The Accused","Driving Miss Daisy","Misery","The Silence of the Lambs","Howards End","The Piano","Blue Sky","Dead Man Walking","Fargo","As Good as It Gets","Shakespeare in Love","Boys Don't Cry","Erin Brockovich","Monster's Ball","The Hours","Monster","Million Dollar Baby","Walk the Line","The Queen","La Vie en Rose","The Reader","The Blind Side","Black Swan","The Iron Lady","Silver Linings Playbook","Blue Jasmine","Still Alice","Room","La La Land","Three Billboards Outside Ebbing, Missouri","The Favourite","Judy","Nomadland","The Eyes of Tammy Faye","Everything Everywhere All at Once","Poor Things"];
@@ -152,7 +216,7 @@
         const bestCinematography = ["Ryan's Daughter","Fiddler on the Roof","Cabaret","Cries and Whispers","The Towering Inferno","Barry Lyndon","Bound for Glory","Close Encounters of the Third Kind","Days of Heaven","Apocalypse Now","Tess","Reds","Gandhi","Fanny and Alexander","The Killing Fields","Out of Africa","The Mission","The Last Emperor","Mississippi Burning","Glory","Dances with Wolves","JFK","A River Runs Through It","Schindler's List","Legends of the Fall","Braveheart","The English Patient","Titanic","Saving Private Ryan","American Beauty","Crouching Tiger, Hidden Dragon","The Lord of the Rings: The Fellowship of the Ring","Road to Perdition","Master and Commander: The Far Side of the World","The Aviator","Memoirs of a Geisha","Pan's Labyrinth","There Will Be Blood","Slumdog Millionaire","Avatar","Inception","Hugo","Life of Pi","Gravity","Birdman","The Revenant","La La Land","Blade Runner 2049","Roma","1917","Mank","Dune","All Quiet on the Western Front","Oppenheimer"];
         const bestFilmEditing = ["Patton","The French Connection","Cabaret","The Sting","The Towering Inferno","Jaws","Rocky","Star Wars","The Deer Hunter","All That Jazz","Raging Bull","Raiders of the Lost Ark","Gandhi","The Right Stuff","The Killing Fields","Witness","Platoon","The Last Emperor","Who Framed Roger Rabbit","Born on the Fourth of July","Dances with Wolves","JFK","Unforgiven","Schindler's List","Forrest Gump","Apollo 13","The English Patient","Titanic","Saving Private Ryan","The Matrix","Traffic","Black Hawk Down","Chicago","The Lord of the Rings: The Return of the King","The Aviator","Crash","The Departed","The Bourne Ultimatum","Slumdog Millionaire","The Hurt Locker","The Social Network","The Girl with the Dragon Tattoo","Argo","Gravity","Whiplash","Mad Max: Fury Road","Hacksaw Ridge","Dunkirk","Bohemian Rhapsody","Ford v Ferrari","Sound of Metal","Dune","Everything Everywhere All at Once","Oppenheimer"];
         const bestAnimatedFeature = ["Shrek","Spirited Away","Finding Nemo","The Incredibles","Wallace & Gromit: The Curse of the Were-Rabbit","Happy Feet","Ratatouille","WALL-E","Up","Toy Story 3","Rango","Brave","Frozen","Big Hero 6","Inside Out","Zootopia","Coco","Spider-Man: Into the Spider-Verse","Toy Story 4","Soul","Encanto","Guillermo del Toro's Pinocchio","The Boy and the Heron"];
-        const bestInternationalFeature = ["Investigation of a Citizen Above Suspicion","The Garden of the Finzi-Continis","The Discreet Charm of the Bourgeoisie","Day for Night","Amarcord","Dersu Uzala","Black and White in Color","Madame Rosa","Get Out Your Handkerchiefs","The Tin Drum","Moscow Does Not Believe in Tears","Mephisto","Volver a Empezar","Fanny and Alexander","Dangerous Moves","The Official Story","The Assault","Babette's Feast","Pelle the Conqueror","Cinema Paradiso","Journey of Hope","Mediterraneo","Indochine","Belle Époque","Burnt by the Sun","Antonia's Line","Kolya","Character","Life Is Beautiful","All About My Mother","Crouching Tiger, Hidden Dragon","No Man's Land","Nowhere in Africa","The Barbarian Invasions","The Sea Inside","Tsotsi","The Lives of Others","The Counterfeiters","Departures","The Secret in Their Eyes","In a Better World","A Separation","Amour","The Great Beauty","Ida","Son of Saul","The Salesman","A Fantastic Woman","Roma","Parasite","Another Round","Drive My Car","All Quiet on the Western Front","The Zone of Interest"];
+        const bestInternationalFeature = ["Investigation of a Citizen Above Suspicion","The Garden of the Finzi-Continis","The Discreet Charm of the Bourgeoisie","Day for Night","Amarcord","Dersu Uzala","Black and White in Color","Madame Rosa","Get Out Your Handkerchiefs","The Tin Drum","Moscow Does Not Believe in Tears","Mephisto","Volver a Empezar","Fanny and Alexander","Dangerous Moves","The Official Story","The Assault","Babette's Feast","Pelle the Conqueror","Cinema Paradiso","Journey of Hope","Mediterraneo","Indochine","Belle Ã‰poque","Burnt by the Sun","Antonia's Line","Kolya","Character","Life Is Beautiful","All About My Mother","Crouching Tiger, Hidden Dragon","No Man's Land","Nowhere in Africa","The Barbarian Invasions","The Sea Inside","Tsotsi","The Lives of Others","The Counterfeiters","Departures","The Secret in Their Eyes","In a Better World","A Separation","Amour","The Great Beauty","Ida","Son of Saul","The Salesman","A Fantastic Woman","Roma","Parasite","Another Round","Drive My Car","All Quiet on the Western Front","The Zone of Interest"];
         const bestDocumentaryFeature = ["Woodstock","The Hellstrom Chronicle","Marjoe","The Great American Cowboy","Hearts and Minds","The Man Who Skied Down Everest","Harlan County U.S.A.","Who Are the DeBolts? And Where Did They Get Nineteen Kids?","Scared Straight!","Best Boy","From Mao to Mozart: Isaac Stern in China","Genocide","Just Another Missing Kid","He Makes Me Feel Like Dancin'","The Times of Harvey Milk","Broken Rainbow","Artie Shaw: Time Is All You've Got","The Ten-Year Lunch: The Wit and Legend of the Algonquin Round Table","Hotel Terminus: The Life and Times of Klaus Barbie","Common Threads: Stories from the Quilt","American Dream","In the Shadow of the Stars","The Panama Deception","I Am a Promise: The Children of Stanton Elementary School","Maya Lin: A Strong Clear Vision","Anne Frank Remembered","When We Were Kings","The Long Way Home","The Last Days","One Day in September","Into the Arms of Strangers: Stories of the Kindertransport","Murder on a Sunday Morning","Bowling for Columbine","The Fog of War","Born into Brothels","March of the Penguins","An Inconvenient Truth","Taxi to the Dark Side","Man on Wire","The Cove","Inside Job","Undefeated","Searching for Sugar Man","20 Feet from Stardom","Citizenfour","Amy","O.J.: Made in America","Icarus","Free Solo","American Factory","My Octopus Teacher","Summer of Soul","Navalny","20 Days in Mariupol"];
 
         // Default watchlist - will be overridden by localStorage
@@ -380,18 +444,18 @@
                             {/* Watchlist button - top right */}
                             <button
                                 onClick={() => toggleWatchlist(movie)}
-                                className={`absolute top-3 right-3 p-2.5 rounded-lg transition shadow-lg ${
+                                className={`absolute top-3 right-3 p-2 rounded-lg transition shadow-lg ${
                                     isInWatchlist 
                                         ? 'hover:opacity-90' 
                                         : 'bg-black/70 hover:bg-black/85 border border-white/20'
                                 }`}
-                                style={isInWatchlist ? {backgroundColor: '#006d77'} : {}}
+                                style={isInWatchlist ? {backgroundColor: 'transparent'} : {}}
                                 title={isInWatchlist ? "Remove from watchlist" : "Add to watchlist"}
                             >
                                 {isInWatchlist ? (
-                                    <BookmarkCheck className="w-6 h-6 text-white"/>
+                                    <BookmarkCheck className="w-8 h-10" style={{color: '#006d77'}}/>
                                 ) : (
-                                    <BookmarkPlus className="w-6 h-6 text-white"/>
+                                    <BookmarkPlus className="w-8 h-10" style={{color: '#006d77'}}/>
                                 )}
                             </button>
                         </div>
@@ -409,7 +473,7 @@
                         
                         {/* Categories */}
                         {categories.length > 0 && (
-                            <p className="text-yellow-500 text-sm font-medium mb-2">{categories.join(' • ')}</p>
+                            <p className="text-yellow-500 text-sm font-medium mb-2">{categories.join(' â€¢ ')}</p>
                         )}
                         
                         {/* Meta row - Year first, then runtime, certification, genres */}
@@ -469,24 +533,23 @@
                                     onClick={() => toggleWatchlist(movie)} 
                                     className={`flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 py-3 px-2 rounded-lg font-medium transition border text-sm ${
                                         isInWatchlist 
-                                            ? 'bg-teal-600 border-teal-600 text-white hover:bg-teal-700 hover:border-teal-700' 
-                                            : 'bg-transparent border-teal-500 text-teal-400 hover:bg-teal-500/10 hover:border-teal-400'
+                                            ? 'text-white hover:opacity-90' 
+                                            : 'bg-transparent text-white hover:bg-white/10'
                                     }`}
-                                    style={isInWatchlist ? {backgroundColor: '#006d77', borderColor: '#006d77'} : {borderColor: '#006d77', color: '#006d77'}}
+                                    style={isInWatchlist 
+                                        ? {backgroundColor: '#006d77', borderColor: '#006d77'} 
+                                        : {borderColor: '#006d77', color: '#006d77'}
+                                    }
                                     onMouseEnter={e => {
-                                        if (isInWatchlist) {
-                                            e.currentTarget.style.backgroundColor = '#005962';
-                                            e.currentTarget.style.borderColor = '#005962';
-                                        } else {
+                                        if (!isInWatchlist) {
                                             e.currentTarget.style.backgroundColor = 'rgba(0, 109, 119, 0.1)';
+                                            e.currentTarget.style.color = '#0a7e8a';
                                         }
                                     }}
                                     onMouseLeave={e => {
-                                        if (isInWatchlist) {
-                                            e.currentTarget.style.backgroundColor = '#006d77';
-                                            e.currentTarget.style.borderColor = '#006d77';
-                                        } else {
+                                        if (!isInWatchlist) {
                                             e.currentTarget.style.backgroundColor = 'transparent';
+                                            e.currentTarget.style.color = '#006d77';
                                         }
                                     }}
                                 >
@@ -621,10 +684,13 @@
                         <div className="max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
                             <button 
                                 onClick={() => setState(s => ({...s, page: 'home', fromList: false, returnToList: null}))} 
-                                className="flex items-center gap-2 hover:opacity-80 transition"
+                                className="flex items-center gap-3 hover:opacity-80 transition"
                             >
-                                <Film className="w-5 h-5 text-rose-500"/>
-                                <h1 className="text-lg font-semibold">MoviePicker</h1>
+                                <FilmStripIcon size="sm" />
+                                <div style={{fontFamily: 'Montserrat, sans-serif', display: 'flex', flexDirection: 'column', lineHeight: '0.9'}}>
+                                    <span style={{color: '#ffffff', fontWeight: 300, fontSize: '1.2rem'}}>WATCH</span>
+                                    <span style={{color: '#0a7e8a', fontWeight: 700, fontSize: '1.2rem'}}>LIST</span>
+                                </div>
                             </button>
                             <button onClick={() => setState(s => ({...s, menuOpen: true}))} className="p-2 hover:bg-zinc-800 rounded-lg transition">
                                 <Menu className="w-5 h-5 text-zinc-400"/>
