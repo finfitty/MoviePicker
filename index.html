@@ -122,30 +122,23 @@
         const { useState, useEffect, useRef, useCallback } = React;
         const TOKEN = 'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI4NDZkYmQ3NzY5MmE3MDY3NGNlMTBhMWM2YjRkNjY2YyIsIm5iZiI6MTc2MzQyMzc5MS4wMDg5OTk4LCJzdWIiOiI2OTFiYjYyZmMzMjkxYzk2ODdjN2QyYTQiLCJzY29wZXMiOlsiYXBpX3JlYWQiXSwidmVyc2lvbiI6MX0.yceVQdz0-IeMdfCDLlmerZZZ9X95mX_5MUEuTHEKnXM';
         
-        // Film Strip Icon Component for Logo
-        const FilmStripIcon = ({size = 'sm'}) => {
-            const sizes = {
-                sm: { width: 35, height: 40, holeSize: 4, frameWidth: 25, frameHeight: 18, playBorder: 6 },
-                md: { width: 55, height: 65, holeSize: 6, frameWidth: 38, frameHeight: 28, playBorder: 9 },
-                lg: { width: 70, height: 80, holeSize: 8, frameWidth: 50, frameHeight: 35, playBorder: 12 }
-            };
-            const s = sizes[size];
-            const holeX = (s.width - s.holeSize) / 2;
-            const frameX = (s.width - s.frameWidth) / 2;
-            
-            return (
-                <svg width={s.width} height={s.height} viewBox={`0 0 ${s.width} ${s.height}`} xmlns="http://www.w3.org/2000/svg">
-                    <rect width={s.width} height={s.height} fill="#006d77" rx="4"/>
-                    <rect x={holeX} y="4" width={s.holeSize} height={s.holeSize} fill="#0a0a0a" rx="1"/>
-                    <rect x={frameX} y={(s.height - s.frameHeight) / 2} width={s.frameWidth} height={s.frameHeight} fill="#0a0a0a" rx="2"/>
-                    <polygon 
-                        points={`${s.width/2 - s.playBorder/3},${s.height/2 - s.playBorder/2} ${s.width/2 + s.playBorder/2},${s.height/2} ${s.width/2 - s.playBorder/3},${s.height/2 + s.playBorder/2}`}
-                        fill="#006d77"
-                    />
-                    <rect x={holeX} y={s.height - s.holeSize - 4} width={s.holeSize} height={s.holeSize} fill="#0a0a0a" rx="1"/>
-                </svg>
-            );
-        };
+        // WatchList Logo as SVG - Perfect consistency across browsers
+        const WatchListLogo = () => (
+            <svg width="140" height="52" viewBox="0 0 140 52" xmlns="http://www.w3.org/2000/svg">
+                {/* Film strip icon */}
+                <rect x="0" y="6" width="35" height="40" fill="#006d77" rx="4"/>
+                <rect x="15.5" y="10" width="4" height="4" fill="#0a0a0a" rx="1"/>
+                <rect x="5" y="19" width="25" height="18" fill="#0a0a0a" rx="2"/>
+                <polygon points="17,24 17,32 25,28" fill="#006d77"/>
+                <rect x="15.5" y="38" width="4" height="4" fill="#0a0a0a" rx="1"/>
+                
+                {/* WATCH text - Light weight */}
+                <text x="45" y="22" fontFamily="Montserrat, sans-serif" fontSize="19" fontWeight="300" fill="#ffffff">WATCH</text>
+                
+                {/* LIST text - Bold weight, Light Peacock */}
+                <text x="45" y="41" fontFamily="Montserrat, sans-serif" fontSize="19" fontWeight="700" fill="#0a7e8a">LIST</text>
+            </svg>
+        );
         
         // Pennant Flag Bookmark Icon - Not in Watchlist
         const BookmarkPlus = ({style}) => (
@@ -453,9 +446,9 @@
                                 title={isInWatchlist ? "Remove from watchlist" : "Add to watchlist"}
                             >
                                 {isInWatchlist ? (
-                                    <BookmarkCheck style={{color: '#006d77', display: 'block', width: '48px', height: '64px'}}/>
+                                    <BookmarkCheck style={{color: '#006d77', display: 'block', width: '38px', height: '51px'}}/>
                                 ) : (
-                                    <BookmarkPlus style={{color: '#006d77', display: 'block', width: '48px', height: '64px'}}/>
+                                    <BookmarkPlus style={{color: '#006d77', display: 'block', width: '38px', height: '51px'}}/>
                                 )}
                             </button>
                         </div>
@@ -684,18 +677,9 @@
                         <div className="max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
                             <button 
                                 onClick={() => setState(s => ({...s, page: 'home', fromList: false, returnToList: null}))} 
-                                className="flex items-center gap-3 hover:opacity-80 transition"
+                                className="hover:opacity-80 transition"
                             >
-                                <FilmStripIcon size="sm" />
-                                <div style={{
-                                    fontFamily: 'Montserrat, sans-serif', 
-                                    display: 'flex', 
-                                    flexDirection: 'column', 
-                                    lineHeight: '0.9'
-                                }}>
-                                    <span style={{color: '#ffffff', fontWeight: 300, fontSize: '1.2rem'}}>WATCH</span>
-                                    <span style={{color: '#0a7e8a', fontWeight: 700, fontSize: '1.2rem'}}>LIST</span>
-                                </div>
+                                <WatchListLogo />
                             </button>
                             <button onClick={() => setState(s => ({...s, menuOpen: true}))} className="p-2 hover:bg-zinc-800 rounded-lg transition">
                                 <Menu className="w-5 h-5 text-zinc-400"/>
